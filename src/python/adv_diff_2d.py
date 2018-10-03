@@ -7,6 +7,9 @@ import numpy as np
 from numpy.linalg import matrix_power
 from scipy.integrate import solve_ivp
 import sympy
+from scipy.sparse import csr_matrix
+from scipy.sparse import lil_matrix
+import scipy
 
 
 from sympy.abc import a, b
@@ -18,25 +21,26 @@ def velocity_field(psi): #insert stream function
 
 
 #parameters
-diff    = 0.1 #diffusion constant [m^2 /d]
-zmax    = 10 #depth of water column [m]
-zGrid   = 30 #number of grid cells
+diff    = 1 #diffusion constant [km^2 /y]
+zmax    = 50 #depth of water column [m]
+zGrid   = 50 #number of grid cells
 dz = zmax/(zGrid-1)
-z = np.mgrid[0.5*dz : zmax+dz : dz]
-xmax    = 10
-xGrid   = 30
+z = np.arange(0 , zmax +dz, dz)
+xmax    = 100
+xGrid   = 50
 dx = xmax/(xGrid-1)
-x = np.mgrid[0.5*dx:xmax+dx:dx]
+x = np.arange(0,xmax+dx,dx)
 u = np.zeros((zGrid,xGrid))
 w = np.zeros((zGrid,xGrid))
 
 print('xvec_end=',x[-1])
 print('zvec_end = ', z[-1])
 print('shape x',np.shape(x))
+print('dx= ',dx , dz)
 
 
 def round_stream_function(A=1 , H=zmax , L=xmax ): #L is rotation(lambda)
-  return A*sympy.sin(a*(sympy.pi/L))*sympy.sin(b*(sympy.pi/H))
+  return A*sympy.sin(a**2*(sympy.pi/L**2))*sympy.sin(b*(sympy.pi/H))
 
 #extracting velocityfields from streamfunction and putting into arrays
 psi = round_stream_function()
@@ -96,7 +100,7 @@ def adflow2d(t, c, u, w, diff, dx, dz, xGrid, zGrid):
 
 
 C0 = np.zeros((zGrid,xGrid))  #initial condition matrix
-C0[5:7,8:10] = 1  #initial conditions
+C0[2,2] = 1  #initial conditions
 #print("C0 =",C0)
 C0f = C0.flatten()
 
@@ -108,31 +112,52 @@ max_dtD = dz**2/(2*diff)
 max_dt = np.minimum(max_dtA, max_dtD)
 
 
-C = solve_ivp(lambda t, y: adflow2d(t, y, u, w, diff, dx, dz, xGrid, zGrid ), [0, 50], C0f, max_step=max_dt) #kan tilføje , max_step =
+C = solve_ivp(lambda t, y: adflow2d(t, y, u, w, diff, dx, dz, xGrid, zGrid ), [0, 10], C0f, max_step=max_dt)
 C.y = np.reshape(C.y,(zGrid,xGrid,len(C.t)))
 
 print('ode done')
 #building transport matrix, A
-A = np.zeros((xGrid*zGrid,xGrid*zGrid))
+#A = np.zeros((xGrid*zGrid,xGrid*zGrid))
+#A_ind = 0
+#Ca0 = np.zeros((zGrid,xGrid))  #initial condition matrix
+
+#for i in range(0,zGrid):
+ #   for j in range(0,xGrid):
+  #      Ca0[i,j] = 1 #insert tracer
+   #     Ca0f = Ca0.flatten()
+    #    Ca = solve_ivp(lambda t, y: adflow2d(t, y, u, w, diff, dx, dz, xGrid, zGrid ) , [0, 1], Ca0f, max_step=max_dt)
+     #   Ca.y = np.reshape(Ca.y,(zGrid,xGrid,len(Ca.t)))
+      #  A_loc = Ca.y[:,:,-1]
+       # A[:,A_ind] = A_loc.flatten()
+        #Ca0[i,j] = 0 #remove tracer
+        #A_ind = A_ind +1
+
 A_ind = 0
 Ca0 = np.zeros((zGrid,xGrid))  #initial condition matrix
+A = lil_matrix((xGrid*zGrid,xGrid*zGrid))
 
 for i in range(0,zGrid):
     for j in range(0,xGrid):
         Ca0[i,j] = 1 #insert tracer
         Ca0f = Ca0.flatten()
         Ca = solve_ivp(lambda t, y: adflow2d(t, y, u, w, diff, dx, dz, xGrid, zGrid ) , [0, 1], Ca0f, max_step=max_dt)
-        Ca.y = np.reshape(Ca.y,(zGrid,xGrid,len(Ca.t)))
-        A_loc = Ca.y[:,:,-1]
-        A[:,A_ind] = A_loc.flatten()
+        if A_ind % 10 == 0:
+            print(A_ind)
+        i_ind = np.nonzero(Ca.y[:,-1])
+        A[i_ind,A_ind] = Ca.y[i_ind,-1]
         Ca0[i,j] = 0 #remove tracer
         A_ind = A_ind +1
 
+A = A.tocsr()
+scipy.sparse.save_npz('A.npz',A)
+print('A = ', type(A))
+
+An = A**10
+#print('A.todense = ',A.todense())
 
 from numpy.linalg import matrix_power
 
 Ca10 = np.zeros((zGrid,xGrid))
-An = matrix_power(A,50)
 
 print('shape.C0f',np.shape(C0f))
 print('shape.C0f Tr',np.shape(C0f.transpose()))
@@ -162,16 +187,35 @@ plt.ylabel('Sum of concentration')
 plt.title('conservation test')
 print(plt.show())
 
+plt.contourf(x,z, C.y[:,:,-1] ,cmap='jet')
+plt.gca().invert_yaxis()
+plt.xlabel('x')
+plt.ylabel('depth')
+plt.title('ode solution t=10')
+plt.colorbar()
+print(plt.show())
+
+plt.contourf(x,z, Ca10 ,cmap='jet')
+plt.gca().invert_yaxis()
+plt.xlabel('x')
+plt.ylabel('depth')
+plt.title('ode solution t=10')
+plt.colorbar()
+print(plt.show())
+
+
 #print(np.shape(C.y))
 #print("C = ",C.y[:,:,-1])
-#for i in range(0,len(C.t),5):
- #   plt.contourf(x,z, C.y[:,:,i] ,cmap='jet')
-  #  plt.gca().invert_yaxis()
-   # plt.xlabel('x')
-#    plt.ylabel('depth')
- #   plt.title(['ode solution t=',str(C.t[i])])
-  #  plt.colorbar()
-   # print(plt.show())
+for i in range(10,100,10):
+    Ca10f = (A**i).dot(C0f)
+    Ca10 = np.reshape(Ca10f, (zGrid, xGrid))
+    plt.contourf(x,z, C.y[:,:,i] ,cmap='jet')
+    plt.gca().invert_yaxis()
+    plt.xlabel('x')
+    plt.ylabel('depth')
+    plt.title(['ode solution t=',str(C.t[i])])
+    plt.colorbar()
+    print(plt.show())
 
 plt.contourf(x,z, C.y[:,:,-1] ,cmap='jet')
 plt.gca().invert_yaxis()
@@ -187,7 +231,7 @@ plt.contourf(x,z, Ca10 ,cmap='jet')
 plt.gca().invert_yaxis()
 plt.xlabel('x')
 plt.ylabel('depth')
-plt.title('matrix solution A t= 10')
+plt.title('matrix solution A t= 100')
 plt.colorbar()
 print(plt.show())
 
