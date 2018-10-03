@@ -1,7 +1,38 @@
-function [outputArg1,outputArg2] = ode_adv_diff2d(inputArg1,inputArg2)
+function [dydt] = ode_adv_diff2d(t,Y,param)
 %ODE_ADV_DIFF2D Summary of this function goes here
 %   Detailed explanation goes here
-outputArg1 = inputArg1;
-outputArg2 = inputArg2;
+
+C = reshape(Y, param.zGrid, param.xGrid);
+
+
+%advective flux 
+for i = 2:param.zGrid
+    for j = 2:param.xGrid
+        if param.u_vec(i,j) >= 0
+            Jax(i,j) = param.u_vec(i,j-1) * C(i,j-1);
+        else
+            Jax(i,j) = param.u_vec(i,j) * C(i,j);
+        end
+        if param.w_vec(i,j) >= 0 
+            Jaz(i,j) = param.w_vec(i-1,j) * C(i-1,j);
+        else
+            Jaz(i,j) = param.w_vec(i,j) * C(i,j);
+        end
+        %diff flux(z-dir)
+        Jdz(2:param.zGrid,j) = -param.D*((C(2:param.zGrid,j)-C(1:param.zGrid-1,j))./param.dz) ;
+    end
+end
+
+Jaz([1 param.zGrid+1],:) = 0;
+Jax(:,[1 param.xGrid+1]) = 0;
+Jdz([1 param.zGrid+1],:) = 0;
+   
+
+Jx = Jax; %+ Jdx
+Jz = Jaz + Jdz;
+dcdt = (Jx(:,1:param.xGrid)-Jx(:,2:param.xGrid+1))/param.dx ...
+    + (Jz(1:param.zGrid,:)-Jz(2:param.zGrid+1,:))/param.dz;
+
+dydt = dcdt(:);
 end
 
