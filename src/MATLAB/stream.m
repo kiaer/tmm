@@ -5,3 +5,4 @@ limits = [1,10];
 
 psi = @(x,y) A*sin(x * pi/ x_max)*sin(y * pi / y_max);
 
+test = 2 + 2;
