@@ -7,15 +7,15 @@ clear all
 close all
 %%
 
-param.D       = 0.5; %diffusion constant [m^2 /d]
+param.D       = 0.1; %diffusion constant [m^2 /d]
 param.zmax    = 4;  %depth of water column [m]
-param.zGrid   = 10;  %number of grid cells
+param.zGrid   = 50;  %number of grid cells
 
 param.dz      = param.zmax/param.zGrid;
 param.z       = [0.5*param.dz:param.dz:param.zmax]';% depth vector located in the middle of each grid cell
 
 param.xmax    = 5000;
-param.xGrid   = 10;
+param.xGrid   = 50;
 
 param.dx      = param.xmax/param.xGrid;
 param.x       = [0.5*param.dx:param.dx:param.xmax]';
@@ -72,20 +72,49 @@ shading interp
 title('w')
 colorbar
 %%
-tspan = 0:100;
+tspan = 0:1;
 C0 = zeros(param.zGrid,param.xGrid);
 %C0(2*param.zGrid/10,5*param.xGrid/10) = 10;
 C0(1,:) = 1;
 
 %C0(2,end-1) = 10;
 
-[t,Y] = ode23tb(@ode_adv_diff2d, tspan, C0(:), [], param);
+[t,Y] = ode15s(@ode_adv_diff2d, tspan, C0(:), [], param);
 
 
 C = reshape(Y',param.zGrid,param.xGrid,length(t));
+%% Transport Matrix
 
-%% plots
-
+A = sparse(param.xGrid*param.zGrid, param.xGrid*param.zGrid);
+ind = 1;
+tic
+for i=1:param.zGrid
+    for j=1:param.xGrid
+        Ca0 = zeros(param.zGrid, param.xGrid);
+        Ca0(j,i) = 1;
+        %Ca0
+        [t,Y] = ode15s(@ode_adv_diff2d, [0 0.001], Ca0(:), [], param);
+        
+        if mod(ind,10) == 0
+            ind
+        end
+       % Ynon = nonzeros(Y(end,:))
+        Y_e = Y(end,:)';
+        Y_e(Y_e <= 0.01) = 0;
+        Y_e = Y_e / sum(Y_e);
+        %A = sparse(1:param.xGrid*param.zGrid,ind,Y_e,param.xGrid*param.zGrid, param.xGrid*param.zGrid);
+        A(:,ind) = Y_e;
+        ind = ind + 1;
+        %Ca0(j,i) = 0;
+    end
+end
+toc
+%%
+An = A^100 * C0(:)
+An = reshape(An, param.zGrid, param.xGrid)
+surface(An)
+axis ij
+shading interp
 % 
 %%
 for i = length(t):-10:1

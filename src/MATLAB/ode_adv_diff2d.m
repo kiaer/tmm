@@ -44,7 +44,12 @@ end
 % Jdz(1,:) = 0;
 
 Jx = Jax; %+ Jdx
+%Ix = find(Jax < 0.000000001);
+%Jx(Ix) = 0;
 Jz = Jaz + Jdz;
+%Iz = find(Jax < 0.000000001);
+%Jz(Iz) = 0;
+
 dcdt = (Jx(:,1:param.xGrid)-Jx(:,2:param.xGrid+1))/param.dx ...
     + (Jz(1:param.zGrid,:)-Jz(2:param.zGrid+1,:))/param.dz;
 
