@@ -7,39 +7,29 @@ clear all
 close all
 %%
 
-param.D       = 0.01; %diffusion constant [m^2 /d]
-param.zmax    = 10;  %depth of water column [m]
-param.zGrid   = 20;  %number of grid cells
+param.D       = 0.5; %diffusion constant [m^2 /d]
+param.zmax    = 4;  %depth of water column [m]
+param.zGrid   = 10;  %number of grid cells
 
-param.dz      = param.zmax/(param.zGrid-1); %grid size
-param.z       = linspace(0,param.zmax,param.zGrid);
+param.dz      = param.zmax/param.zGrid;
+param.z       = [0.5*param.dz:param.dz:param.zmax]';% depth vector located in the middle of each grid cell
 
-% param.dz      = param.zmax/param.zGrid;
-% param.z       = [0.5*param.dz:param.dz:param.zmax]';% depth vector located in the middle of each grid cell
+param.xmax    = 5000;
+param.xGrid   = 10;
 
-param.xmax    = 10;
-param.xGrid   = 20;
-
-param.dx      = param.xmax/(param.xGrid-1);
-param.x       = linspace(0,param.xmax,param.xGrid);
-
-% param.dx      = param.xmax/param.xGrid;
-% param.x       = [0.5*param.dx:param.dx:param.xmax]';
+param.dx      = param.xmax/param.xGrid;
+param.x       = [0.5*param.dx:param.dx:param.xmax]';
 
 param.u_vec   = zeros(param.zGrid,param.xGrid);
 param.w_vec   = zeros(param.zGrid,param.xGrid);
 
 
-A       = 10;
+A       = 1000;
 
-%forst?r ikke xmax-1 formuleringen...
-% syms x y
-% psi = @(x,y) A*sin(sym(pi) * (x / (param.xmax - 1))) * sin(sym(pi) * (y / (param.zmax - 1)));
-% u = matlabFunction( diff(psi(x,y), y) );
-% v = matlabFunction( -diff(psi(x,y), x) );
+
 
 syms x y
-psi = @(x,y) A*sin(sym(pi) * (x / (param.xmax))) * sin(sym(pi) * (y / (param.zmax)));
+psi = @(x,y) A*sin(sym(pi) * (x^2 / (param.xmax^2))) * sin(sym(pi) * (sqrt(y) / sqrt(param.zmax)));
 u = matlabFunction( diff(psi(x,y), y) );
 v = matlabFunction( -diff(psi(x,y), x) );
 
@@ -50,6 +40,12 @@ for i=1:length(param.z)
         param.w_vec(i, j) = v(param.x(j),param.z(i));
     end
 end
+
+param.u_vec(1,1) = param.u_vec(1,2);
+param.u_vec(end,end) = param.u_vec(end,end-1);
+param.w_vec(1,end) = param.w_vec(2,end);
+param.w_vec(end,1) = param.w_vec(end-1,1);
+
 
 
 
@@ -76,26 +72,28 @@ shading interp
 title('w')
 colorbar
 %%
-tspan = 0:10;
+tspan = 0:100;
 C0 = zeros(param.zGrid,param.xGrid);
-C0(2*param.zGrid/10,5*param.xGrid/10) = 10;
+%C0(2*param.zGrid/10,5*param.xGrid/10) = 10;
+C0(1,:) = 1;
+
 %C0(2,end-1) = 10;
 
-[t,Y] = ode45(@ode_adv_diff2d, tspan, C0(:), [], param);
+[t,Y] = ode23tb(@ode_adv_diff2d, tspan, C0(:), [], param);
 
 
 C = reshape(Y',param.zGrid,param.xGrid,length(t));
 
 %% plots
 
-
+% 
 %%
-for i = length(t):-1:1
+for i = length(t):-10:1
     figure
     surface(param.x,param.z,C(:,:,i))
     shading interp
     colorbar
-    caxis([0 10])
+    caxis([0 1])
     axis ij
     xlabel('x')
     ylabel('depth')
