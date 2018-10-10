@@ -35,9 +35,13 @@ for i = 2:param.zGrid
             Jaz(i,j) = (param.w_vec(i,j) * C(i,j))*param.dx;
             Jaz(param.xGrid+1,j) = 0;
         end
-        Jdz(2:param.zGrid,j) = -param.D*((C(2:param.zGrid,j)-C(1:param.zGrid-1,j))./param.dz)*param.dx ;
+        %Jdz(2:param.zGrid,j) = -param.D*((C(2:param.zGrid,j)-C(1:param.zGrid-1,j))./param.dz)*param.dx ;
         
     end
+end
+
+for j = 1:param.xGrid
+    Jdz(2:param.zGrid,j) = -param.D*((C(2:param.zGrid,j)-C(1:param.zGrid-1,j))./param.dz)*param.dx ;
 end
 
 % Jaz([1 param.zGrid+1],:) = 0;
@@ -50,7 +54,8 @@ end
 Jx = Jax; %+ Jdx
 Jz = Jaz + Jdz;
 dcdt = (Jx(:,1:param.xGrid)-Jx(:,2:param.xGrid+1))/param.dx ...
-    + (Jz(1:param.zGrid,:)-Jz(2:param.zGrid+1,:))/param.dz;
+    + (Jz(1:param.zGrid,:)-Jz(2:param.zGrid+1,:))/param.dz...
+    - D*C;
 
 dydt = dcdt(:);
 end
