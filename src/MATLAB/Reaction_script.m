@@ -75,7 +75,7 @@ colorbar
 tspan = 0:100;
 C0 = zeros(param.zGrid,param.xGrid);
 %C0(2*param.zGrid/10,5*param.xGrid/10) = 10;
-C0(1,:) = 1;
+%C0(1,:) = 1;
 
 %C0(2,end-1) = 10;
 

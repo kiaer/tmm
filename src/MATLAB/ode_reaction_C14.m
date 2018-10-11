@@ -8,7 +8,7 @@ D = 1/(2*H); %decay const (decay pr year)
 
 C = reshape(Y, param.zGrid, param.xGrid);
 
-%C(1,:) = 1e-3;
+C(1,:) = 1e-4;
 
 %advective flux 
 for i = 1:param.zGrid
