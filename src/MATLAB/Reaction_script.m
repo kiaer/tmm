@@ -7,15 +7,15 @@ clear all
 close all
 %%
 
-param.D       = 0.5; %diffusion constant [m^2 /d]
+param.D       = 0.0005; %diffusion constant [m^2 /d]
 param.zmax    = 4;  %depth of water column [m]
-param.zGrid   = 10;  %number of grid cells
+param.zGrid   = 60;  %number of grid cells
 
 param.dz      = param.zmax/param.zGrid;
 param.z       = [0.5*param.dz:param.dz:param.zmax]';% depth vector located in the middle of each grid cell
 
 param.xmax    = 5000;
-param.xGrid   = 10;
+param.xGrid   = 50;
 
 param.dx      = param.xmax/param.xGrid;
 param.x       = [0.5*param.dx:param.dx:param.xmax]';
@@ -23,8 +23,10 @@ param.x       = [0.5*param.dx:param.dx:param.xmax]';
 param.u_vec   = zeros(param.zGrid,param.xGrid);
 param.w_vec   = zeros(param.zGrid,param.xGrid);
 
+param.atm     = 1;   %Atm concentration
+param.H       = 100;  %Half
 
-A       = 1000;
+A             = 1;
 
 
 
@@ -75,7 +77,7 @@ colorbar
 tspan = 0:100;
 C0 = zeros(param.zGrid,param.xGrid);
 %C0(2*param.zGrid/10,5*param.xGrid/10) = 10;
-%C0(1,:) = 1;
+C0(1,:) = 1;
 
 %C0(2,end-1) = 10;
 
@@ -83,6 +85,15 @@ C0 = zeros(param.zGrid,param.xGrid);
 
 
 C = reshape(Y',param.zGrid,param.xGrid,length(t));
+figure
+colorbar
+surface(param.x,param.z,C(:,:,end))
+shading interp
+axis ij
+xlabel('x')
+ylabel('depth')
+    
+
 
 %% plots
 
@@ -100,10 +111,3 @@ for i = length(t):-10:1
     title(['t =' num2str(i)])
 end
 %%
-figure
-surface(param.x,param.z,C(:,:,end))
-shading interp
-axis ij
-xlabel('x')
-ylabel('depth')
-    
