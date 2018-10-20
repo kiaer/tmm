@@ -9,13 +9,13 @@ close all
 
 param.D       = 0.0005; %diffusion constant [m^2 /d]
 param.zmax    = 4;  %depth of water column [m]
-param.zGrid   = 10;  %number of grid cells
+param.zGrid   = 20;  %number of grid cells
 
 param.dz      = param.zmax/param.zGrid;
 param.z       = [0.5*param.dz:param.dz:param.zmax]';% depth vector located in the middle of each grid cell
 
 param.xmax    = 5000;
-param.xGrid   = 10;
+param.xGrid   = 20;
 
 param.dx      = param.xmax/param.xGrid;
 param.x       = [0.5*param.dx:param.dx:param.xmax]';
@@ -76,7 +76,7 @@ shading interp
 title('w')
 colorbar
 %%
-tspan = 0:10;
+tspan = 0:100;
 C0 = zeros(param.zGrid,param.xGrid);
 %C0(2*param.zGrid/10,5*param.xGrid/10) = 10;
 C0(1,:) = 1;
@@ -89,7 +89,7 @@ C0(1,:) = 1;
 C = reshape(Y',param.zGrid,param.xGrid,length(t));
 figure
 colorbar
-surface(param.x,param.z,C(:,:,end))
+contourf(param.x,param.z,C(:,:,end),5)
 %sshading interpsh
 axis ij
 shading flat

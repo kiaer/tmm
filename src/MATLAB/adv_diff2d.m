@@ -9,13 +9,13 @@ close all
 
 param.D       = 0.0005; %diffusion constant [m^2 /d]
 param.zmax    = 4;  %depth of water column [m]
-param.zGrid   = 10;  %number of grid cells
+param.zGrid   = 20;  %number of grid cells
 
 param.dz      = param.zmax/param.zGrid;
 param.z       = [0.5*param.dz:param.dz:param.zmax]';% depth vector located in the middle of each grid cell
 
 param.xmax    = 5000;
-param.xGrid   = 10;
+param.xGrid   = 20;
 
 param.dx      = param.xmax/param.xGrid;
 param.x       = [0.5*param.dx:param.dx:param.xmax]';
@@ -160,17 +160,17 @@ C0 = zeros(param.zGrid,param.xGrid);
 C0(1,:) = 1;
 Cn = C0;
 D = 1/(2*param.H);
-for i = 1:10
+for i = 1:100
     %Cn = Cn(:)
     Cn(1,:) = param.atm;
     Cn = An * Cn(:) - D .* Cn(:);
     %size(temp)
-    Cn = reshape(temp, param.zGrid, param.xGrid);
+    Cn = reshape(Cn, param.zGrid, param.xGrid);
     %Cn(1,:) = -param.D .* ((Cn(1,:) - param.atm) ./ param.dz) .* param.dx;
 end
 figure
+contourf(Cn,5)
 axis ij
-surface(Cn)
 colorbar
 caxis([0 1.2])
 shading flat
