@@ -9,13 +9,13 @@ close all
 
 param.D       = 0.0005; %diffusion constant [m^2 /d]
 param.zmax    = 4;  %depth of water column [m]
-param.zGrid   = 60;  %number of grid cells
+param.zGrid   = 10;  %number of grid cells
 
 param.dz      = param.zmax/param.zGrid;
 param.z       = [0.5*param.dz:param.dz:param.zmax]';% depth vector located in the middle of each grid cell
 
 param.xmax    = 5000;
-param.xGrid   = 50;
+param.xGrid   = 10;
 
 param.dx      = param.xmax/param.xGrid;
 param.x       = [0.5*param.dx:param.dx:param.xmax]';
@@ -24,14 +24,16 @@ param.u_vec   = zeros(param.zGrid,param.xGrid);
 param.w_vec   = zeros(param.zGrid,param.xGrid);
 
 param.atm     = 1;   %Atm concentration
-param.H       = 100;  %Half
+param.H       = 10;  %Half
 
-A             = 1;
+A             = 1000;
 
 
 
 syms x y
 psi = @(x,y) A*sin(sym(pi) * (x^2 / (param.xmax^2))) * sin(sym(pi) * (sqrt(y) / sqrt(param.zmax)));
+%psi = @(x,y) A*sin(sym(pi) * (x / param.xmax)) * sin(sym(pi) * (y / param.zmax));
+
 u = matlabFunction( diff(psi(x,y), y) );
 v = matlabFunction( -diff(psi(x,y), x) );
 
@@ -47,7 +49,7 @@ param.u_vec(1,1) = param.u_vec(1,2);
 param.u_vec(end,end) = param.u_vec(end,end-1);
 param.w_vec(1,end) = param.w_vec(2,end);
 param.w_vec(end,1) = param.w_vec(end-1,1);
-
+% 
 
 
 
@@ -74,22 +76,25 @@ shading interp
 title('w')
 colorbar
 %%
-tspan = 0:100;
+tspan = 0:10;
 C0 = zeros(param.zGrid,param.xGrid);
 %C0(2*param.zGrid/10,5*param.xGrid/10) = 10;
 C0(1,:) = 1;
+%C0(1,end - 1) = 100
 
 %C0(2,end-1) = 10;
 
 [t,Y] = ode23tb(@ode_reaction_C14, tspan, C0(:), [], param);
 
-
 C = reshape(Y',param.zGrid,param.xGrid,length(t));
 figure
 colorbar
 surface(param.x,param.z,C(:,:,end))
-shading interp
+%sshading interpsh
 axis ij
+shading flat
+colorbar
+caxis([0 1.2])
 xlabel('x')
 ylabel('depth')
     

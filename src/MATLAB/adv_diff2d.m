@@ -7,15 +7,15 @@ clear all
 close all
 %%
 
-param.D       = 1; %diffusion constant [m^2 /d]
+param.D       = 0.0005; %diffusion constant [m^2 /d]
 param.zmax    = 4;  %depth of water column [m]
-param.zGrid   = 40;  %number of grid cells
+param.zGrid   = 10;  %number of grid cells
 
 param.dz      = param.zmax/param.zGrid;
 param.z       = [0.5*param.dz:param.dz:param.zmax]';% depth vector located in the middle of each grid cell
 
 param.xmax    = 5000;
-param.xGrid   = 60;
+param.xGrid   = 10;
 
 param.dx      = param.xmax/param.xGrid;
 param.x       = [0.5*param.dx:param.dx:param.xmax]';
@@ -23,8 +23,10 @@ param.x       = [0.5*param.dx:param.dx:param.xmax]';
 param.u_vec   = zeros(param.zGrid,param.xGrid);
 param.w_vec   = zeros(param.zGrid,param.xGrid);
 
+param.atm     = 1;   %Atm concentration
+param.H       = 10;  %Half
 
-A       = 1000;
+A             = 1000;
 
 
 
@@ -75,14 +77,20 @@ colorbar
 tspan = 0:1;
 C0 = zeros(param.zGrid,param.xGrid);
 %C0(2*param.zGrid/10,5*param.xGrid/10) = 10;
-C0(1,1) = 1;
+C0(1,:) = 1;
+
 
 %C0(2,end-1) = 10;
 tic
-[t,Y] = ode23tb(@ode_adv_diff2d, [0 0.001], C0(:), [], param);
+[t,Y] = ode23tb(@ode_adv_diff2d, [0 10], C0(:), [], param);
 toc
 
 C = reshape(Y',param.zGrid,param.xGrid,length(t));
+surface(param.x,param.z,C(:,:,end))
+axis ij
+shading flat
+colorbar
+caxis([0 0.8])
 %% Transport Matrix
 
 A = sparse(param.xGrid*param.zGrid, param.xGrid*param.zGrid);
@@ -93,7 +101,7 @@ for i=1:param.zGrid
         Ca0 = zeros(param.zGrid, param.xGrid);
         Ca0(j,i) = 1;
         %Ca0
-        [t,Y] = ode23tb(@ode_adv_diff2d, [0 0.001], Ca0(:), [], param);
+        [t,Y] = ode23tb(@ode_adv_diff2d, [0 0.1], Ca0(:), [], param);
         
         if mod(ind,10) == 0
             ind
@@ -116,13 +124,15 @@ tspan = 0:1;
 C0 = zeros(param.zGrid,param.xGrid);
 %C0(2*param.zGrid/10,5*param.xGrid/10) = 10;
 C0(1,:) = 1;
-
-An = A^100 * C0(:)
-An = reshape(An, param.zGrid, param.xGrid)
-surface(param.x,param.z, An)
+figure
+Ca = A^100 * C0(:)
+Ca = reshape(Ca, param.zGrid, param.xGrid)
+surface(param.x,param.z, Ca)
 axis ij
-shading interp
+shading flat
 sum(An, 'all')
+colorbar
+caxis([0 0.8])
 %%
 for i = length(t):-10:1
     figure
@@ -143,4 +153,24 @@ colorbar
 axis ij
 xlabel('x')
 ylabel('depth')
-    
+%%
+An = A ^ 10;
+C0 = zeros(param.zGrid,param.xGrid);
+%C0(2*param.zGrid/10,5*param.xGrid/10) = 10;
+C0(1,:) = 1;
+Cn = C0;
+D = 1/(2*param.H);
+for i = 1:10
+    %Cn = Cn(:)
+    Cn(1,:) = param.atm;
+    Cn = An * Cn(:) - D .* Cn(:);
+    %size(temp)
+    Cn = reshape(temp, param.zGrid, param.xGrid);
+    %Cn(1,:) = -param.D .* ((Cn(1,:) - param.atm) ./ param.dz) .* param.dx;
+end
+figure
+axis ij
+surface(Cn)
+colorbar
+caxis([0 1.2])
+shading flat

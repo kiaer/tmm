@@ -10,11 +10,13 @@ C = reshape(Y, param.zGrid, param.xGrid);
 for i = 1:param.zGrid
     for j = 2:param.xGrid
         if param.u_vec(i,j) >= 0
-            Jax(i,j) = (param.u_vec(i,j-1) * C(i,j-1))*param.dz;
+            Jax(i,j) = (param.u_vec(i,j-1) * C(i,j-1));%*param.dz;
             Jax(i,1) = 0;
         else
-            Jax(i,j) = (param.u_vec(i,j) * C(i,j))*param.dz;
+            Jax(i,j) = (param.u_vec(i,j) * C(i,j));%*param.dz;
             Jax(i,param.xGrid+1) = 0;
+            %Jax(i,param.zGrid+1) = 0;
+
             %diff flux(z-dir)
             
         end
@@ -25,11 +27,12 @@ end
 for i = 2:param.zGrid
     for j = 1:param.xGrid
         if param.w_vec(i,j) >= 0 
-            Jaz(i,j) = (param.w_vec(i-1,j) * C(i-1,j))*param.dx;
+            Jaz(i,j) = (param.w_vec(i-1,j) * C(i-1,j));%*param.dx;
             Jaz(1,j) = 0;
         else
-            Jaz(i,j) = (param.w_vec(i,j) * C(i,j))*param.dx;
+            Jaz(i,j) = (param.w_vec(i,j) * C(i,j));%*param.dx;
             Jaz(param.zGrid+1,j) = 0;
+            %Jaz(param.xGrid+1,j) = 0;
         end
            % Jdz(2:param.zGrid,j) = -param.D*((C(2:param.zGrid,j)-C(1:param.zGrid-1,j))./param.dz)*param.dx ;
 
@@ -38,7 +41,7 @@ for i = 2:param.zGrid
 end
 
 for j = 1:param.xGrid
-    Jdz(2:param.zGrid,j) = -param.D*((C(2:param.zGrid,j)-C(1:param.zGrid-1,j))./param.dz)*param.dx ;
+    Jdz(2:param.zGrid,j) = -param.D*((C(2:param.zGrid,j)-C(1:param.zGrid-1,j))./param.dz);%*param.dx ;
 end
 
 % Jaz([1 param.zGrid+1],:) = 0;
