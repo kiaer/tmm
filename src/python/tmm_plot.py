@@ -24,8 +24,8 @@ x = np.arange(0,xmax+dx,dx)
 u = np.zeros((zGrid,xGrid))
 w = np.zeros((zGrid,xGrid))
 
-A = scipy.sparse.load_npz('A.npz')
-io.savemat('A.mat', {'A': A})
+A = scipy.sparse.load_npz('../../bin/A.npz')
+#io.savemat('A.mat', {'A': A})
 
 print(np.shape(A))
 print(A)

@@ -30,7 +30,7 @@ s = param_test.nGrid
 A = np.zeros((s,s))
 for i in range(len(C0)):  #len(C0)
     C0[i] = 1 #insert tracer
-    C = solve_ivp(lambda t, y: adflow1d2(t, y, param_test.u, param_test.diff, param_test.dz, param_test.nGrid) , [0, 1], C0, t_eval=[1])
+    C = solve_ivp(lambda t, y: adflow1d2(t, y, param_test.u, param_test.diff, param_test.dz, param_test.nGrid) , [0, 0.01], C0, t_eval=[0.01])
     A[:,i] = C.y[:,-1]
     C0[i] = 0 #remove tracer
 
@@ -63,25 +63,38 @@ plt.figure(1)
 plt.subplot(1,3,1)
 plt.gca().invert_yaxis()
 plt.plot(C.y[:,-1],param_test.z)
-plt.title('ode solution')
+plt.title('ODE Solution')
 
-C2 = matrix_power(A,30).dot(C0)
+plt.ylabel('Depth [m]')
+
+C2 = matrix_power(A,3000).dot(C0)
 
 plt.subplot(1,3,2)
 plt.gca().invert_yaxis()
 plt.plot(C2,param_test.z)
-plt.title('matrix solution')
+plt.title('Matrix solution')
+plt.xlabel('Concentration [mg / l]')
+plt.yticks([])
+plt.ylabel('Depth [m]')
 
 delta = C.y[:,-1]-C2
 
 plt.subplot(1,3,3)
 plt.gca().invert_yaxis()
 plt.plot(delta,param_test.z)
-plt.title('ODE - matrix')
+plt.yticks([])
+plt.title('Difference')
+plt.xticks([-0.000002, 0, 0.000002])
 print(plt.show())
 
 np.set_printoptions(precision=3)
 np.set_printoptions(threshold=np.nan)
 
-print(A)
+plt.imshow(A, interpolation='none', cmap='jet', origin='lower')
+plt.gca().invert_yaxis()
+plt.colorbar()
+print(plt.show())
+
+plt.spy(A, cmap='Blues')
+plt.show()
 
