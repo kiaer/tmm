@@ -59,20 +59,31 @@ param.w_vec(end,1) = param.w_vec(end-1,1);
 % end
 %param.u_vec(:,end) = 0;
 %param.w_vec(end,:) = 0;
+
+    
 %%
 figure
 surface(param.x,param.z,param.u_vec)
 shading interp
 axis ij
 title('u')
-colorbar
+xlabel('[km]')
+ylabel('depth [km]')
+c=colorbar;
+c.Label.String='velocity [km/yr]';
+set(gca,'FontSize', 16)
 
 figure
 surface(param.x,param.z,param.w_vec)
 axis ij
 shading interp
 title('w')
-colorbar
+c=colorbar;
+xlabel('[km]')
+ylabel('depth [km]')
+c.Label.String='velocity [km/yr]';
+set(gca,'FontSize', 16)
+
 %%
 tspan = 0:1;
 C0 = zeros(param.zGrid,param.xGrid);
@@ -81,78 +92,78 @@ C0(1,:) = 1;
 
 
 %C0(2,end-1) = 10;
-tic
+tflag = tic;
 [t,Y] = ode23tb(@ode_adv_diff2d, [0 10], C0(:), [], param);
-toc
+Solvetime_ODE=toc(tflag)
 
 C = reshape(Y',param.zGrid,param.xGrid,length(t));
+
+
+
+figure
 surface(param.x,param.z,C(:,:,end))
 axis ij
 shading flat
 colorbar
+title(['ODE solution 10 yrs, Sol. time =',num2str(Solvetime_ODE),'s'])
+ylabel('Depth [km]')
+xlabel('South - North [km]')
 caxis([0 0.8])
-%% Transport Matrix
+set(gca,'FontSize', 16)
 
-A = sparse(param.xGrid*param.zGrid, param.xGrid*param.zGrid);
-ind = 1;
-tic
-for i=1:param.zGrid
-    for j=1:param.xGrid
-        Ca0 = zeros(param.zGrid, param.xGrid);
-        Ca0(j,i) = 1;
-        %Ca0
-        [t,Y] = ode23tb(@ode_adv_diff2d, [0 0.1], Ca0(:), [], param);
-        
-        if mod(ind,10) == 0
-            ind
-        end
-       % Ynon = nonzeros(Y(end,:))
-        Y_e = Y(end,:)';
-        %sum_y = sum(Y_e);
-        Y_e(Y_e <= 0.005) = 0;
-        Y_e = Y_e / sum(Y_e);
-        %Y_e = Y_e / sum(Y_e);
-        %A = sparse(1:param.xGrid*param.zGrid,ind,Y_e,param.xGrid*param.zGrid, param.xGrid*param.zGrid);
-        A(:,ind) = Y_e;
-        ind = ind + 1;
-        %Ca0(j,i) = 0;
-    end
-end
-toc
+%% Transport Matrix
+load('../../bin/A_20x20.mat')
+% A = sparse(param.xGrid*param.zGrid, param.xGrid*param.zGrid);
+% ind = 1;
+% tflag = tic;
+% for i=1:param.zGrid
+%     for j=1:param.xGrid
+%         Ca0 = zeros(param.zGrid, param.xGrid);
+%         Ca0(j,i) = 1;
+%         %Ca0
+%         [t,Y] = ode23tb(@ode_adv_diff2d, [0 0.1], Ca0(:), [], param);
+%         
+%         if mod(ind,10) == 0
+%             ind
+%         end
+%        % Ynon = nonzeros(Y(end,:))
+%         Y_e = Y(end,:)';
+%         %sum_y = sum(Y_e);
+%         Y_e(Y_e <= 0.005) = 0;
+%         Y_e = Y_e / sum(Y_e);
+%         %Y_e = Y_e / sum(Y_e);
+%         %A = sparse(1:param.xGrid*param.zGrid,ind,Y_e,param.xGrid*param.zGrid, param.xGrid*param.zGrid);
+%         A(:,ind) = Y_e;
+%         ind = ind + 1;
+%         %Ca0(j,i) = 0;
+%     end
+% end
+% Buildingtime_A =toc(tflag); %~200s
 %%
-tspan = 0:1;
+
 C0 = zeros(param.zGrid,param.xGrid);
-%C0(2*param.zGrid/10,5*param.xGrid/10) = 10;
 C0(1,:) = 1;
+An = A^10;
+
+tflag = tic;
+Ca = An^10 * C0(:);
+Ca = reshape(Ca, param.zGrid, param.xGrid);
+Solvetime_TMM = toc(tflag);
+
+
 figure
-Ca = A^100 * C0(:)
-Ca = reshape(Ca, param.zGrid, param.xGrid)
 surface(param.x,param.z, Ca)
 axis ij
 shading flat
-sum(An, 'all')
+sum(sum(Ca))
 colorbar
+xlabel('South - North [km]')
+ylabel('depth [km]')
+title(['TMM solution 10 yrs, Sol. time =',num2str(Solvetime_TMM),'s'])
 caxis([0 0.8])
-%%
-for i = length(t):-10:1
-    figure
-    surface(param.x,param.z,C(:,:,i))
-    shading interp
-    colorbar
-    caxis([0 1])
-    axis ij
-    xlabel('x')
-    ylabel('depth')
-    title(['t =' num2str(i)])
-end
-%%
-figure
-surface(param.x,param.z,C(:,:,end))
-shading interp
-colorbar
-axis ij
-xlabel('x')
-ylabel('depth')
+set(gca,'FontSize', 16)
+
+
 %%
 An = A ^ 10;
 C0 = zeros(param.zGrid,param.xGrid);
@@ -160,6 +171,7 @@ C0 = zeros(param.zGrid,param.xGrid);
 C0(1,:) = 1;
 Cn = C0;
 D = 1/(2*param.H);
+tflag = tic;
 for i = 1:100
     %Cn = Cn(:)
     Cn(1,:) = param.atm;
@@ -168,9 +180,45 @@ for i = 1:100
     Cn = reshape(Cn, param.zGrid, param.xGrid);
     %Cn(1,:) = -param.D .* ((Cn(1,:) - param.atm) ./ param.dz) .* param.dx;
 end
+Solvetime_TMMreaction = toc(tflag);
+
+
 figure
-contourf(Cn,5)
+contourf(param.x,param.z,Cn,5)
 axis ij
-colorbar
+c=colorbar;
+c.Label.String='concentration';
 caxis([0 1.2])
 shading flat
+xlabel('South - North [km]')
+ylabel('depth [km]')
+title(['TMM solution 10 yrs, Sol. time =',num2str(Solvetime_TMMreaction),'s'])
+set(gca,'FontSize', 16)
+
+
+%%
+tspan = 0:100;
+C0 = zeros(param.zGrid,param.xGrid);
+C0(1,:) = 1;
+
+tflag = tic;
+[t,Y] = ode23tb(@ode_reaction_C14, tspan, C0(:), [], param);
+C = reshape(Y',param.zGrid,param.xGrid,length(t));
+Solvetime_ODEreaction = toc(tflag);
+
+figure
+contourf(param.x,param.z,C(:,:,end),5)
+axis ij
+shading flat
+c=colorbar;
+caxis([0 1.2])
+xlabel('South - North [km]')
+ylabel('depth [km]')
+c.Label.String='concentration';
+title(['ODE solution 10 yrs, Sol. time =',num2str(Solvetime_ODEreaction),'s'])
+set(gca,'FontSize', 16)
+
+
+figure
+spy(A)
+title('Structure of transport matrix')

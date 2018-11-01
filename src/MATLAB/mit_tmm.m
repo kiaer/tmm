@@ -1,16 +1,17 @@
 % TMM
 %
-% Christian Kiær and Anton Almgren
+% Christian Ki??r and Anton Almgren
 clear all
 close all
 clc
 
 %%
 %load("../../bin/MITgcm/Matrix10/TMs/matrix_nocorrection.mat");
-load("../../bin/MITgcm/Matrix5/TMs/matrix_nocorrection_annualmean.mat");
-load("../../bin/MITgcm/grid.mat");
-load("../../bin/MITgcm/config_data.mat");
+load('../../bin/MITgcm/Matrix5/TMs/matrix_nocorrection_annualmean.mat');
+load('../../bin/MITgcm/grid.mat');
+load('../../bin/MITgcm/config_data.mat');
 load('../../bin/MITgcm/Matrix5/Data/boxes.mat')
+
 %%
 surface(x,y,bathy(:,:,1)')
 shading flat
@@ -22,12 +23,13 @@ Ib=find(izBox>0);
 nbb=length(Ib);
 I = linspace(1,52749, 52749)';
 Ia = linspace(1, 128*64*15, 128*64*15)';
-mat = gridToMatrix(C, [], "../../bin/MITgcm/Matrix5/Data/boxes.mat", "../../bin/MITgcm/grid.mat");
-C = matrixToGrid(mat, [], "../../bin/MITgcm/Matrix5/Data/boxes.mat", "../../bin/MITgcm/grid.mat");
+mat = gridToMatrix(C, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
+C = matrixToGrid(mat, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
 figure
 contourf(C(:,:,1)', 5)
 colorbar
 caxis([0 10])
+
 
 %%
 sum(mat)
@@ -42,8 +44,10 @@ for i=1:100000
    % sum(Cn)
 end
 %Cn = Cn ;
-sum(Cn, 'all', 'omitnan') 
-Cn = matrixToGrid(Cn, [], "../../bin/MITgcm/Matrix5/Data/boxes.mat", "../../bin/MITgcm/grid.mat");
+
+sum(Cn, 'all', 'omitnan')
+Cn = matrixToGrid(Cn, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat", "../../bin/MITgcm/grid.mat');
+
 %%
 
 figure
