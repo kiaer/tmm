@@ -42,7 +42,7 @@ for i=1:100000
    % sum(Cn)
 end
 %Cn = Cn ;
-sum(Cn, 'all', 'omitnan')
+sum(Cn, 'all', 'omitnan') 
 Cn = matrixToGrid(Cn, [], "../../bin/MITgcm/Matrix5/Data/boxes.mat", "../../bin/MITgcm/grid.mat");
 %%
 
