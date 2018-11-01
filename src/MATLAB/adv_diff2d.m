@@ -67,7 +67,7 @@ surface(param.x,param.z,param.u_vec)
 shading interp
 axis ij
 title('u')
-xlabel('[km]')
+xlabel('South - North [km]')
 ylabel('depth [km]')
 c=colorbar;
 c.Label.String='velocity [km/yr]';
@@ -79,7 +79,7 @@ axis ij
 shading interp
 title('w')
 c=colorbar;
-xlabel('[km]')
+xlabel('South - North [km]')
 ylabel('depth [km]')
 c.Label.String='velocity [km/yr]';
 set(gca,'FontSize', 16)
