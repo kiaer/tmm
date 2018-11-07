@@ -34,19 +34,26 @@ caxis([0 10])
 %%
 sum(mat)
 Ix = speye(nb,nb);
-Aexpms = Ix + 1200*Aexpms;
+Aexpms = Ix + (24*60*60)*Aexpms;
+Aimpms = Aimpms^(72);
 %%
 Cn = mat;
-for i=1:100000
+for i=1:20%365*6
     Cn =  Aimpms * ( Aexpms  * Cn);
-    Cn( find(Cn < 0.000001)) = 0;
-    %Cn = Cn / sum(Cn);
+    Cn(find(Cn < 0.000001)) = 0;
+    %Cn = Cn ./ sum(sum(sum(Cn)));
    % sum(Cn)
 end
 %Cn = Cn ;
+%%
 
-sum(Cn, 'all', 'omitnan')
-Cn = matrixToGrid(Cn, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat", "../../bin/MITgcm/grid.mat');
+
+%sum(Cn, 'all', 'omitnan')
+Cn = matrixToGrid(Cn, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
+
+% conservation of mass
+box_vol = dx.*dy.*dz;
+COM = sum(sum(sum(C,'omitnan')))-sum(sum(sum(Cn,'omitnan')));
 
 %%
 
@@ -60,3 +67,10 @@ figure
 Cx = permute(Cn, [1,3,2])
 contourf(x,z,Cx(:,:,10)',5)
 axis ij
+
+%%
+figure
+Cy = permute(Cn, [2,3,1]);
+contourf(y,z,Cy(:,:,112)',5)
+axis ij
+

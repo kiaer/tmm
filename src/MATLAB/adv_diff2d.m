@@ -112,33 +112,33 @@ caxis([0 0.8])
 set(gca,'FontSize', 16)
 
 %% Transport Matrix
-load('../../bin/A_20x20.mat')
-% A = sparse(param.xGrid*param.zGrid, param.xGrid*param.zGrid);
-% ind = 1;
-% tflag = tic;
-% for i=1:param.zGrid
-%     for j=1:param.xGrid
-%         Ca0 = zeros(param.zGrid, param.xGrid);
-%         Ca0(j,i) = 1;
-%         %Ca0
-%         [t,Y] = ode23tb(@ode_adv_diff2d, [0 0.1], Ca0(:), [], param);
-%         
-%         if mod(ind,10) == 0
-%             ind
-%         end
-%        % Ynon = nonzeros(Y(end,:))
-%         Y_e = Y(end,:)';
-%         %sum_y = sum(Y_e);
-%         Y_e(Y_e <= 0.005) = 0;
-%         Y_e = Y_e / sum(Y_e);
-%         %Y_e = Y_e / sum(Y_e);
-%         %A = sparse(1:param.xGrid*param.zGrid,ind,Y_e,param.xGrid*param.zGrid, param.xGrid*param.zGrid);
-%         A(:,ind) = Y_e;
-%         ind = ind + 1;
-%         %Ca0(j,i) = 0;
-%     end
-% end
-% Buildingtime_A =toc(tflag); %~200s
+%load('../../bin/A_20x20.mat')
+A = sparse(param.xGrid*param.zGrid, param.xGrid*param.zGrid);
+ind = 1;
+tflag = tic;
+for i=1:param.zGrid
+    for j=1:param.xGrid
+        Ca0 = zeros(param.zGrid, param.xGrid);
+        Ca0(j,i) = 1;
+        %Ca0
+        [t,Y] = ode23tb(@ode_adv_diff2d, [0 0.1], Ca0(:), [], param);
+        
+        if mod(ind,10) == 0
+            ind
+        end
+       % Ynon = nonzeros(Y(end,:))
+        Y_e = Y(end,:)';
+        %sum_y = sum(Y_e);
+        Y_e(Y_e <= 0.005) = 0;
+        Y_e = Y_e / sum(Y_e);
+        %Y_e = Y_e / sum(Y_e);
+        %A = sparse(1:param.xGrid*param.zGrid,ind,Y_e,param.xGrid*param.zGrid, param.xGrid*param.zGrid);
+        A(:,ind) = Y_e;
+        ind = ind + 1;
+        %Ca0(j,i) = 0;
+    end
+end
+Buildingtime_A =toc(tflag); %~200s
 %%
 
 C0 = zeros(param.zGrid,param.xGrid);
@@ -220,5 +220,30 @@ set(gca,'FontSize', 16)
 
 
 figure
+contourf(param.x,param.z,C(:,:,end)-Cn,5)
+axis ij
+shading flat
+c=colorbar;
+%caxis([0 1.2])
+xlabel('South - North [km]')
+ylabel('depth [km]')
+c.Label.String='difference in concentration';
+title('ODE solution - TMMsolution')
+set(gca,'FontSize', 16)
+
+
+figure
 spy(A)
 title('Structure of transport matrix')
+
+%%
+[X,Z]=meshgrid(param.x,param.z);
+figure
+streamslice(X,Z,param.u_vec,param.w_vec)
+axis ij
+%ylim([0 4])
+%%
+figure
+streamline(X,Z,param.u_vec,param.w_vec)
+axis ij
+
