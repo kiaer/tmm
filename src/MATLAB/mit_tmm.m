@@ -12,7 +12,7 @@ load('../../bin/MITgcm/grid.mat');
 load('../../bin/MITgcm/config_data.mat');
 load('../../bin/MITgcm/Matrix5/Data/boxes.mat')
 
-%%
+%%1
 surface(x,y,bathy(:,:,1)')
 shading flat
 C = zeros(128,64,15);
