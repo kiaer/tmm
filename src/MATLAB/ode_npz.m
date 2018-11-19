@@ -29,9 +29,9 @@ dZdt(surf_ind+1:length(N)) = param.eps .* max(0, (param.c .* Z(surf_ind+1:end) .
 %dNdt = gridToMatrix(N, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
 %dPdt = gridToMatrix(P, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
 %dZdt = gridToMatrix(Z, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
-if T == 200
-    keyboard
-end
+% if T == 100
+%     keyboard
+% end
 dydt = [dNdt, dPdt, dZdt]';
 
 end
