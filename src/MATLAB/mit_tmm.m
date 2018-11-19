@@ -19,6 +19,7 @@ C = zeros(128,64,15);
 
 bathy(60,30,1)
 C(:,:,1) = 1;
+
 Ib=find(izBox>0);
 nbb=length(Ib);
 I = linspace(1,52749, 52749)';
@@ -32,7 +33,6 @@ caxis([0 10])
 
 
 %%
-sum(mat)
 Ix = speye(nb,nb);
 Aexpms = Ix + (12*60*60)*Aexpms;
 Aimpms = Aimpms^(36);
@@ -40,22 +40,29 @@ Aimpms = Aimpms^(36);
 H = 2; %years
 D = (1/2)/(730*H); 
 Cn = mat;
+
 for i=1:730*10%365*6
     Cn = matrixToGrid(Cn, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
     Cn(:,:,1) = 1;
     Cn = gridToMatrix(Cn, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
     Cn =  Aimpms * ( Aexpms  * Cn) - Cn * D;
+
 end
 %Cn = Cn ;
-%%
+%% Conservation of mass
+a = volb/sum(volb);
+for i = 1:1000:52000
+    COM_c(i:i+1000) = a(i:i+1000).*mat(i:i+1000);
+    COM_cn(i:i+1000) = a(i:i+1000).*Cn(i:i+1000);
 
+end
+COM_c(52000:52749)=a(52000:52749).*mat(52000:52749);
+COM_cn(52000:52749)=a(52000:52749).*Cn(52000:52749);
 
-%sum(Cn, 'all', 'omitnan')
+COM = sum(COM_c)-sum(COM_cn);
+
 Cn = matrixToGrid(Cn, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
 
-% conservation of mass
-box_vol = dx.*dy.*dz;
-COM = sum(sum(sum(C,'omitnan')))-sum(sum(sum(Cn,'omitnan')));
 
 %%
 
@@ -66,8 +73,9 @@ contourf(Cn(:,:,1)', 5)
 colorbar
 %caxis([0 100])
 figure
-Cx = permute(Cn, [1,3,2])
+Cx = permute(Cn, [1,3,2]);
 contourf(x,z,Cx(:,:,30)',5)
+
 axis ij
 
 %%
