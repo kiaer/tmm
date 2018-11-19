@@ -18,7 +18,7 @@ shading flat
 C = zeros(128,64,15);
 
 bathy(60,30,1)
-C(60:90,10,1) = 10;
+C(:,:,1) = 1;
 Ib=find(izBox>0);
 nbb=length(Ib);
 I = linspace(1,52749, 52749)';
@@ -34,15 +34,17 @@ caxis([0 10])
 %%
 sum(mat)
 Ix = speye(nb,nb);
-Aexpms = Ix + (24*60*60)*Aexpms;
-Aimpms = Aimpms^(72);
+Aexpms = Ix + (12*60*60)*Aexpms;
+Aimpms = Aimpms^(36);
 %%
+H = 2; %years
+D = (1/2)/(730*H); 
 Cn = mat;
-for i=1:20%365*6
-    Cn =  Aimpms * ( Aexpms  * Cn);
-    Cn(find(Cn < 0.000001)) = 0;
-    %Cn = Cn ./ sum(sum(sum(Cn)));
-   % sum(Cn)
+for i=1:730*10%365*6
+    Cn = matrixToGrid(Cn, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
+    Cn(:,:,1) = 1;
+    Cn = gridToMatrix(Cn, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
+    Cn =  Aimpms * ( Aexpms  * Cn) - Cn * D;
 end
 %Cn = Cn ;
 %%
@@ -65,12 +67,15 @@ colorbar
 %caxis([0 100])
 figure
 Cx = permute(Cn, [1,3,2])
-contourf(x,z,Cx(:,:,10)',5)
+contourf(x,z,Cx(:,:,30)',5)
 axis ij
 
 %%
 figure
 Cy = permute(Cn, [2,3,1]);
-contourf(y,z,Cy(:,:,112)',5)
+contourf(y(32:55),z,Cy(32:55,:,113)',6)
+colormap(parula)
+shading interp
+colorbar
 axis ij
 
