@@ -49,9 +49,20 @@ Aimp = Aimp^(36);
 %%
 surf_ind = length(find(bathy(:,:,1) == 1));
 %%
-opts = odeset('RelTol',1e-2, 'AbsTol', 1e-4,'Stats','on');
+opts = odeset('RelTol',1e-2, 'AbsTol', 1e-5);%,'Stats','on');
 opts = [];
 month = 1;
+layer = permute(sum(sum(bathy)),[3,1,2]);
+layerind = [0 ; cumsum(layer) ];
+
+% %% half layers
+% layer1 = permute(sum(sum(bathy)),[3,1,2]);
+
+% layer = zeros(2*length(layer1),1);
+% layer(1:2:end-1) = ceil(layer1/2);
+% layer(2:2:end) = floor(layer1/2);
+% layerind = [0 ; cumsum(layer) ];
+%%
 for i=1:730
     if mod(i, 61) == 0
         if month < 10
@@ -70,14 +81,25 @@ for i=1:730
     P =  Aimp * ( Aexp  * P);
     Z =  Aimp * ( Aexp  * Z);
 
-    for j=1:length(N)
-        [t, Y] = ode23tb(@ode_npz, [0 0.5], [N(j) P(j) Z(j)], opts, param, i, surf_ind, Ybox(1:surf_ind), j);
-        if mod(j,10000) == 0
-            j
-        end
-        N(j) = Y(1);
-        P(j) = Y(2);
-        Z(j) = Y(3);
+%     for j=1:length(N)
+%         [t, Y] = ode23tb(@ode_npz, [0 0.5], [N(j) P(j) Z(j)], opts, param, i, surf_ind, Ybox(1:surf_ind), j);
+%         if mod(j,10000) == 0
+%             j
+%         end
+%         N(j) = Y(1);
+%         P(j) = Y(2);
+%         Z(j) = Y(3);
+%     end
+    for j=1:length(layer)
+        [t, Y] = ode23(@ode_npz, [0 0.5], [N(layerind(j)+1:layerind(j+1))'...
+             P(layerind(j)+1:layerind(j+1))' Z(layerind(j)+1:layerind(j+1))']...
+            , opts, param, i, surf_ind, Ybox(1:surf_ind), j, layerind,layer);
+        %if mod(j,1) == 0
+        %    j
+        %end
+        N(layerind(j)+1:layerind(j+1)) = Y(end,1:layer(j));
+        P(layerind(j)+1:layerind(j+1)) = Y(end,layer(j)+1:2*layer(j));
+        Z(layerind(j)+1:layerind(j+1)) = Y(end,2*layer(j)+1:3*layer(j));
     end
     %N = Y(end, 1:52749)'; 
     %P = Y(end, 52749+1:52749*2)';
@@ -179,3 +201,8 @@ geoshow('landareas.shp', 'FaceColor', [0.5 1.0 0.5],'EdgeColor',[0.5 1.0 0.5]);
 c=colorbar;
 c.Label.String='concentration';
 title('Zooplankton, April')
+
+%%
+layer2 = zeros(2*length(layer),1);
+layer2(1:2:end-1) = ceil(layer/2);
+layer2(2:2:end) = floor(layer/2);
