@@ -39,7 +39,7 @@ loadPath1 =  '../../bin/MITgcm/Matrix5/TMs/matrix_nocorrection_';
 % P(:,:,:) = 1;
 % Z(:,:,:) = 0.1;
 
-load("../../bin/init_values.mat")
+load('../../bin/init_values.mat')
 
 N = gridToMatrix(N, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
 P = gridToMatrix(P, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
@@ -139,7 +139,7 @@ N = matrixToGrid(N, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MI
 P = matrixToGrid(P, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
 Z = matrixToGrid(Z, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
 %%
-%save("../../bin/init_values.mat", 'N', 'P', 'Z')
+save('../../bin/init_values.mat', 'N', 'P', 'Z')
 %%
 g(1:surf_ind,1:365) = exp(-(0.025) * param.M).*(1-0.8*sin(pi.*Ybox(1:surf_ind)/180).*cos(2.*pi.*(1:365)./365));
 mon = [0 31 28 31 30 31 30 31 31 30 31 30 ];
@@ -210,7 +210,3 @@ c=colorbar;
 c.Label.String='concentration';
 title('Zooplankton, Jan')
 
-%%
-layer2 = zeros(2*length(layer),1);
-layer2(1:2:end-1) = ceil(layer/2);
-layer2(2:2:end) = floor(layer/2);
