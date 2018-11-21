@@ -103,12 +103,25 @@ P = matrixToGrid(P, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MI
 Z = matrixToGrid(Z, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
 %%
 g(1:surf_ind,1:365) = exp(-(0.025) * param.M).*(1-0.8*sin(pi.*Ybox(1:surf_ind)/180).*cos(2.*pi.*(1:365)./365));
-surface(g')
+mon = [0 31 28 31 30 31 30 31 31 30 31 30 ];
+ticks = 1+cumsum(mon);
+labels = [{'J'} {'F'} {'M'} {'A'} {'M'} {'J'} {'J'} {'A'} {'S'} {'O'} {'N'} {'D'}];
+
+surface(1:365,Ybox(1:surf_ind),g)
 shading flat
+xticks(ticks)
+xticklabels(labels)
+ylabel('Latitude')
+c=colorbar;
+c.Label.String  = 'growthrate';
+xlim([1 sum(mon)+31])
+ylim([-80 80])
+
 %%
 figure
 surface(x,y, N(:,:,1)')
 colorbar
+title('Nutrients')
 %caxis([0,4])
 figure
 surface(x,y, P(:,:,1)')
@@ -118,3 +131,41 @@ figure
 surface(x,y, Z(:,:,1)')
 colorbar
 
+%%
+%N(isnan(N))=0;
+Np = [N(:,:,:); N(1,:,:)];
+xp = [x-x(1) ;360];
+
+%%
+figure
+hold on
+axesm eckert4;
+ax = worldmap('world');
+setm(ax, 'Origin', [0 200 0])
+surfacem(y,xp,N(:,:,1)');
+geoshow('landareas.shp', 'FaceColor', [0.5 1.0 0.5],'EdgeColor',[0.5 1.0 0.5]);
+c=colorbar;
+c.Label.String='concentration';
+title('Nutrients, April')
+
+figure
+hold on
+axesm eckert4;
+ax = worldmap('world');
+setm(ax, 'Origin', [0 200 0])
+surfacem(y,xp,P(:,:,1)');
+geoshow('landareas.shp', 'FaceColor', [0.5 1.0 0.5],'EdgeColor',[0.5 1.0 0.5]);
+c=colorbar;
+c.Label.String='concentration';
+title('Phytoplankton, April')
+
+figure
+hold on
+axesm eckert4;
+ax = worldmap('world');
+setm(ax, 'Origin', [0 200 0])
+surfacem(y,xp,Z(:,:,1)');
+geoshow('landareas.shp', 'FaceColor', [0.5 1.0 0.5],'EdgeColor',[0.5 1.0 0.5]);
+c=colorbar;
+c.Label.String='concentration';
+title('Zooplankton, April')
