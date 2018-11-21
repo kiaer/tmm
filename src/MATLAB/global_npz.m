@@ -31,13 +31,15 @@ loadPath = '../../bin/MITgcm/Matrix5/TMs/matrix_nocorrection_0';
 loadPath1 =  '../../bin/MITgcm/Matrix5/TMs/matrix_nocorrection_';
 
 %% Initial conditions
-N = zeros(128,64,15);
-P = zeros(128,64,15);
-Z = zeros(128,64,15);
+% N = zeros(128,64,15);
+% P = zeros(128,64,15);
+% Z = zeros(128,64,15);
+% 
+% N(:,:,:) = 10;
+% P(:,:,:) = 1;
+% Z(:,:,:) = 0.1;
 
-N(:,:,2:15) = 10;
-P(:,:,1) = 1;
-Z(:,:,1) = 0.1;
+load("../../bin/init_values.mat")
 
 N = gridToMatrix(N, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
 P = gridToMatrix(P, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
@@ -93,7 +95,7 @@ for i=1:730
     for j=1:length(layer)
         [t, Y] = ode23(@ode_npz, [0 0.5], [N(layerind(j)+1:layerind(j+1))'...
              P(layerind(j)+1:layerind(j+1))' Z(layerind(j)+1:layerind(j+1))']...
-            , opts, param, i, surf_ind, Ybox(1:surf_ind), j, layerind,layer);
+            , opts, param, i, surf_ind, Ybox(1:surf_ind), j, layerind, layer);
         %if mod(j,1) == 0
         %    j
         %end
@@ -105,25 +107,28 @@ for i=1:730
     %P = Y(end, 52749+1:52749*2)';
     %Z = Y(end, 52749*2+1:52749*3)';
 
-    %N(N < 0) = 0;
-    %P(P < 0) = 0;
-    %Z(Z < 0) = 0;
-    if mod(i,20) == 0
+    N(N < 0) = 0;
+    P(P < 0) = 0;
+    Z(Z < 0) = 0;
+    if mod(i,60) == 0
         i
         Nn = matrixToGrid(N, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
         Pn = matrixToGrid(P, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
         Zn = matrixToGrid(Z, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
         figure(1)
+        clf(1)
         surface(x,y, Nn(:,:,1)')
         %set(gcf, "zdata", Nn(:,:,1)')
         colorbar
         drawnow
         %caxis([0,4])
         figure(2)
+        clf(2)
         surface(x,y, Pn(:,:,1)')
         colorbar
         drawnow
         figure(3)
+        clf(3)
         surface(x,y, Zn(:,:,1)')
         colorbar
         drawnow
@@ -133,6 +138,8 @@ end
 N = matrixToGrid(N, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
 P = matrixToGrid(P, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
 Z = matrixToGrid(Z, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
+%%
+%save("../../bin/init_values.mat", 'N', 'P', 'Z')
 %%
 g(1:surf_ind,1:365) = exp(-(0.025) * param.M).*(1-0.8*sin(pi.*Ybox(1:surf_ind)/180).*cos(2.*pi.*(1:365)./365));
 mon = [0 31 28 31 30 31 30 31 31 30 31 30 ];
@@ -170,17 +177,18 @@ xp = [x-x(1) ;360];
 
 %%
 figure
+subplot(3,1,1)
 hold on
 axesm eckert4;
 ax = worldmap('world');
 setm(ax, 'Origin', [0 200 0])
 surfacem(y,xp,N(:,:,1)');
 geoshow('landareas.shp', 'FaceColor', [0.5 1.0 0.5],'EdgeColor',[0.5 1.0 0.5]);
-c=colorbar;
+c=colorbar;z
 c.Label.String='concentration';
-title('Nutrients, April')
+title('Nutrients, Jan')
 
-figure
+subplot(3,1,2)
 hold on
 axesm eckert4;
 ax = worldmap('world');
@@ -189,9 +197,9 @@ surfacem(y,xp,P(:,:,1)');
 geoshow('landareas.shp', 'FaceColor', [0.5 1.0 0.5],'EdgeColor',[0.5 1.0 0.5]);
 c=colorbar;
 c.Label.String='concentration';
-title('Phytoplankton, April')
+title('Phytoplankton, Jan')
 
-figure
+subplot(3,1,3)
 hold on
 axesm eckert4;
 ax = worldmap('world');
@@ -200,7 +208,7 @@ surfacem(y,xp,Z(:,:,1)');
 geoshow('landareas.shp', 'FaceColor', [0.5 1.0 0.5],'EdgeColor',[0.5 1.0 0.5]);
 c=colorbar;
 c.Label.String='concentration';
-title('Zooplankton, April')
+title('Zooplankton, Jan')
 
 %%
 layer2 = zeros(2*length(layer),1);
