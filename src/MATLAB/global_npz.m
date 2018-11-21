@@ -69,10 +69,18 @@ for i=1:730
     N =  Aimp * ( Aexp  * N);
     P =  Aimp * ( Aexp  * P);
     Z =  Aimp * ( Aexp  * Z);
-    [t, Y] = ode15s(@ode_npz, [0 0.5], [N;P;Z], opts, param, i, surf_ind, Ybox(1:surf_ind));
-    N = Y(end, 1:52749)'; 
-    P = Y(end, 52749+1:52749*2)';
-    Z = Y(end, 52749*2+1:52749*3)';
+    for j=1:length(N)
+        [t, Y] = ode23tb(@ode_npz, [0 0.5], [N(j) P(j) Z(j)], opts, param, i, surf_ind, Ybox(1:surf_ind), j);
+        if mod(j,10000) == 0
+            j
+        end
+        N(j) = Y(1);
+        P(j) = Y(2);
+        Z(j) = Y(3);
+    end
+    %N = Y(end, 1:52749)'; 
+    %P = Y(end, 52749+1:52749*2)';
+    %Z = Y(end, 52749*2+1:52749*3)';
     %N(N < 0) = 0;
     %P(P < 0) = 0;
     %Z(Z < 0) = 0;
