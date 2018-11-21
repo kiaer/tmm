@@ -9,25 +9,24 @@ T = i / 2;
 %P = matrixToGrid(P, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
 %Z = matrixToGrid(Z, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
 
-g(1:surf_ind) = exp(-(0.025) * param.M).*(1-0.8*sin(pi.*Ybox/180)*cos(2*pi*T/365));
 
 if j <= surf_ind
-    dNdt = - (((sign(N) + 1) ./ 2) .* g(j) .* ( N ./( param.Hp + N)) - ((sign(P) + 1) ./ 2) .* param.r) .* P;
+    g = exp(-(0.025) * param.M).*(1-0.8*sin(pi.*Ybox(j)/180)*cos(2*pi*T/365));
 
-    dPdt = (((sign(N) + 1) ./ 2) .* g(j).* ( N ./( param.Hp + N )) - ((sign(P) + 1) ./ 2) .* param.r ) .* P ...
+    dNdt = - (((sign(N) + 1) ./ 2) .* g .* ( N ./( param.Hp + N)) - ((sign(P) + 1) ./ 2) .* param.r) .* P;
+
+    dPdt = (((sign(N) + 1) ./ 2) .* g .* ( N ./( param.Hp + N )) - ((sign(P) + 1) ./ 2) .* param.r ) .* P ...
     - max(0,  ((sign(Z) + 1) ./ 2) .* (param.c .* Z .* (P - param.P0 ) ./ (param.Hz + P - param.P0)));
 
-    dZdt = param.eps .* max(0, ((sign(Z) + 1) ./ 2) .* param.c .* Z .*( P - param.P0 ) ./ (param.Hz + P - param.P0)) - ((sign(Z) + 1) ./ 2) .*  param.d .* Z;
+    dZdt = param.eps .* max(0, ((sign(Z) + 1) ./ 2) .* (param.c .* Z .*( P - param.P0 ) ./ (param.Hz + P - param.P0))) - ((sign(Z) + 1) ./ 2) .*  param.d .* Z;
 else
     
     dNdt =  ((sign(P) + 1) ./ 2) .* param.r .* P;
 
 
-    dPdt = - max(0,  ((sign(Z) + 1) ./ 2) .* (param.c .* Z .* (P - param.P0 ) ./ (param.Hz + P - param.P0)))...
-                       - P .* ((sign(P) + 1) ./ 2) .* param.r;
+    dPdt = - max(0,  ((sign(Z) + 1) ./ 2) .* (param.c .* Z .* (P - param.P0 ) ./ (param.Hz + P - param.P0))) - P .* ((sign(P) + 1) ./ 2) .* param.r;
 
-    dZdt = param.eps .* max(0, (((sign(Z) + 1) ./ 2) .* param.c .* Z .*( P - param.P0 ) ./ (param.Hz + P...
-                  - param.P0))) - ((sign(Z) + 1) ./ 2) .*  param.d .* Z;
+    dZdt = param.eps .* max(0, (((sign(Z) + 1) ./ 2) .* (param.c .* Z .*( P - param.P0 ) ./ (param.Hz + P - param.P0)))) - ((sign(Z) + 1) ./ 2) .*  param.d .* Z;
 
 end
 

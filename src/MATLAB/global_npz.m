@@ -49,10 +49,10 @@ Aimp = Aimp^(36);
 %%
 surf_ind = length(find(bathy(:,:,1) == 1));
 %%
-opts = odeset('RelTol',1e-2, 'AbsTol', 1e-4,'Stats','on');
+%opts = odeset('RelTol',1e-2, 'AbsTol', 1e-4,'Stats','on');
 opts = [];
 month = 1;
-for i=1:730
+for i=1:300
     if mod(i, 61) == 0
         if month < 10
             load(strcat(loadPath, num2str(month), '.mat'));
@@ -69,14 +69,14 @@ for i=1:730
     N =  Aimp * ( Aexp  * N);
     P =  Aimp * ( Aexp  * P);
     Z =  Aimp * ( Aexp  * Z);
-    for j=1:length(N)
-        [t, Y] = ode23tb(@ode_npz, [0 0.5], [N(j) P(j) Z(j)], opts, param, i, surf_ind, Ybox(1:surf_ind), j);
+    parfor j=1:length(N)
+        [t, Y] = ode23t(@ode_npz, [0 0.5], [N(j) P(j) Z(j)], opts, param, i, surf_ind, Ybox(1:surf_ind), j);
         if mod(j,10000) == 0
             j
         end
-        N(j) = Y(1);
-        P(j) = Y(2);
-        Z(j) = Y(3);
+        N(j) = Y(end, 1);
+        P(j) = Y(end, 2);
+        Z(j) = Y(end, 3);
     end
     %N = Y(end, 1:52749)'; 
     %P = Y(end, 52749+1:52749*2)';
@@ -84,7 +84,7 @@ for i=1:730
     %N(N < 0) = 0;
     %P(P < 0) = 0;
     %Z(Z < 0) = 0;
-    if mod(i,20) == 0
+    if mod(i,10) == 0
         i
         Nn = matrixToGrid(N, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
         Pn = matrixToGrid(P, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
@@ -127,16 +127,16 @@ ylim([-80 80])
 
 %%
 figure
-surface(x,y, N(:,:,1)')
+surface(x,y, N(:,:,4)')
 colorbar
 title('Nutrients')
 %caxis([0,4])
 figure
-surface(x,y, P(:,:,1)')
+surface(x,y, P(:,:,4)')
 colorbar
 %caxis([0, 1])  
 figure
-surface(x,y, Z(:,:,1)')
+surface(x,y, Z(:,:,3)')
 colorbar
 
 %%
