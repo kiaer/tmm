@@ -14,11 +14,11 @@ load('../../bin/MITgcm/Matrix5/Data/boxes.mat')
 %% Param setup
 param.Hp = 0.5;   % Half-saturation constant Phyto
 param.Hz = 1.0;   % Half
-param.r = 0.035;   % Mortality rate
+param.r = 0.07;   % Mortality rate
 param.M = 50;     % Depth
 param.D = 0.005;  % Diffusion
 
-param.d = 0.035;   % Grazers loss
+param.d = 0.07;   % Grazers loss
 param.eps = 0.5;  % Grazing efficiency
 param.P0 = 0.1;   % Grazing Threshold
 param.N0 = 10;    % Deep nutrients
@@ -35,7 +35,7 @@ N = zeros(128,64,15);
 P = zeros(128,64,15);
 Z = zeros(128,64,15);
 
-N(:,:,:) = 10;
+N(:,:,2:15) = 10;
 P(:,:,1) = 1;
 Z(:,:,1) = 0.1;
 
@@ -49,10 +49,10 @@ Aimp = Aimp^(36);
 %%
 surf_ind = length(find(bathy(:,:,1) == 1));
 %%
-%opts = odeset('NonNegative',1);
-
+opts = odeset('RelTol',1e-2, 'AbsTol', 1e-4,'Stats','on');
+opts = [];
 month = 1;
-for i=1:200
+for i=1:730
     if mod(i, 61) == 0
         if month < 10
             load(strcat(loadPath, num2str(month), '.mat'));
@@ -69,28 +69,32 @@ for i=1:200
     N =  Aimp * ( Aexp  * N);
     P =  Aimp * ( Aexp  * P);
     Z =  Aimp * ( Aexp  * Z);
-    [t, Y] = ode23(@ode_npz, [0 0.5], [N;P;Z], [], param, i, surf_ind, Ybox(1:surf_ind));
+    [t, Y] = ode15s(@ode_npz, [0 0.5], [N;P;Z], opts, param, i, surf_ind, Ybox(1:surf_ind));
     N = Y(end, 1:52749)'; 
     P = Y(end, 52749+1:52749*2)';
     Z = Y(end, 52749*2+1:52749*3)';
-    N(N < 0) = 0;
-    P(P < 0) = 0;
-    Z(Z < 0) = 0;
-    if mod(i,100) == 0
+    %N(N < 0) = 0;
+    %P(P < 0) = 0;
+    %Z(Z < 0) = 0;
+    if mod(i,20) == 0
         i
-%         Nn = matrixToGrid(N, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
-%         Pn = matrixToGrid(P, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
-%         Zn = matrixToGrid(Z, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
-%         figure
-%         surface(x,y, Nn(:,:,1)')
-%         colorbar
-%         %caxis([0,4])
-%         figure
-%         surface(x,y, Pn(:,:,1)')
-%         colorbar
-%         figure
-%         surface(x,y, Zn(:,:,1)')
-%         colorbar
+        Nn = matrixToGrid(N, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
+        Pn = matrixToGrid(P, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
+        Zn = matrixToGrid(Z, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
+        figure(1)
+        surface(x,y, Nn(:,:,1)')
+        %set(gcf, "zdata", Nn(:,:,1)')
+        colorbar
+        drawnow
+        %caxis([0,4])
+        figure(2)
+        surface(x,y, Pn(:,:,1)')
+        colorbar
+        drawnow
+        figure(3)
+        surface(x,y, Zn(:,:,1)')
+        colorbar
+        drawnow
     end
 end
 %%
@@ -109,7 +113,7 @@ colorbar
 figure
 surface(x,y, P(:,:,1)')
 colorbar
-%caxis([0, 1])
+%caxis([0, 1])  
 figure
 surface(x,y, Z(:,:,1)')
 colorbar
