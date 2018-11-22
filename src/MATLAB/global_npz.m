@@ -65,7 +65,7 @@ layerind = [0 ; cumsum(layer) ];
 % layer(2:2:end) = floor(layer1/2);
 % layerind = [0 ; cumsum(layer) ];
 %%
-for i=1:730
+for i=1:730*3
     if mod(i, 61) == 0
         if month < 10
             load(strcat(loadPath, num2str(month), '.mat'));
