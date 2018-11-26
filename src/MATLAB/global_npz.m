@@ -1,22 +1,29 @@
-% Global NPZ model
-%
+%% Global NPZ model
+% 
 % Christian Kiaer and Anton Almgren
 clear all
 close all
 clc
-%% Load TMM
-%load('../../bin/MITgcm/Matrix5/TMs/matrix_nocorrection_annualmean.mat');
+%% Load Initial January TM and configuations
 load('../../bin/MITgcm/Matrix5/TMs/matrix_nocorrection_01.mat');
 load('../../bin/MITgcm/grid.mat');
 load('../../bin/MITgcm/config_data.mat');
 load('../../bin/MITgcm/Matrix5/Data/boxes.mat')
+
+% Load paths for switching TM
+loadPath = '../../bin/MITgcm/Matrix5/TMs/matrix_nocorrection_0';
+loadPath1 =  '../../bin/MITgcm/Matrix5/TMs/matrix_nocorrection_';
+
+% Preparing for timestepping. Using 43200 sec timesteps (0.5 days)
+Ix = speye(nb,nb);
+Aexp = Ix + (12*60*60)*Aexp;
+Aimp = Aimp^(36);
 
 %% Param setup
 param.Hp = 0.5;   % Half-saturation constant Phyto
 param.Hz = 1.0;   % Half
 param.r = 0.07;   % Mortality rate
 param.M = 50;     % Depth
-param.D = 0.005;  % Diffusion
 
 param.d = 0.07;   % Grazers loss
 param.eps = 0.5;  % Grazing efficiency
@@ -24,13 +31,8 @@ param.P0 = 0.1;   % Grazing Threshold
 param.N0 = 10;    % Deep nutrients
 
 param.c = 1.0;    % Maximum Grazing
-
-param.phi = 47;   % Test phi
-
-loadPath = '../../bin/MITgcm/Matrix5/TMs/matrix_nocorrection_0';
-loadPath1 =  '../../bin/MITgcm/Matrix5/TMs/matrix_nocorrection_';
-
 %% Initial conditions
+% Uncomment if no spun up version is available
 % N = zeros(128,64,15);
 % P = zeros(128,64,15);
 % Z = zeros(128,64,15);
@@ -39,112 +41,181 @@ loadPath1 =  '../../bin/MITgcm/Matrix5/TMs/matrix_nocorrection_';
 % P(:,:,:) = 1;
 % Z(:,:,:) = 0.1;
 
+% Loads initial values from previous runs. Comment if no data is available
 load('../../bin/init_values.mat')
 
+% Convert from grid form to matrix form
 N = gridToMatrix(N, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
 P = gridToMatrix(P, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
 Z = gridToMatrix(Z, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
 
-Ix = speye(nb,nb);
-Aexp = Ix + (12*60*60)*Aexp;
-Aimp = Aimp^(36);
-%%
+month = 0;
+
+% Toplayer monthly mean vector
+Nm = zeros(4448,12);
+Pm = zeros(4448,12);
+Zm = zeros(4448,12);
+
+% Toplayer half daily vector
+Nd = zeros(4448,730);
+Pd = zeros(4448,730);
+Zd = zeros(4448,730);
+
+mon = [0 31 28 31 30 31 30 31 31 30 31 30 ];
+ticks = (1+cumsum(mon))*2;
+ticks(1) = 1;
+labels = [{'J'} {'F'} {'M'} {'A'} {'M'} {'J'} {'J'} {'A'} {'S'} {'O'} {'N'} {'D'}];
+%% Misc
+Np = [N(:,:,:); N(1,:,:)];
+xp = [x-x(1) ;360];
+
+% Finding the number of indicies in the surface layer
 surf_ind = length(find(bathy(:,:,1) == 1));
-%%
-opts = odeset('RelTol',1e-2, 'AbsTol', 1e-5);%,'Stats','on');
-opts = [];
-month = 1;
+
+% Split into layers
 layer = permute(sum(sum(bathy)),[3,1,2]);
-layerind = [0 ; cumsum(layer) ];
+layerind = [0 ; cumsum(layer)];
 
-% %% half layers
-% layer1 = permute(sum(sum(bathy)),[3,1,2]);
 
-% layer = zeros(2*length(layer1),1);
-% layer(1:2:end-1) = ceil(layer1/2);
-% layer(2:2:end) = floor(layer1/2);
-% layerind = [0 ; cumsum(layer) ];
-%%
-for i=1:730*3
-    if mod(i, 61) == 0
+%% Running the TM with the simple NPZ model
+for i=1:730
+    
+    % Test for time to change monthly TM
+    if ismember(i, ticks)
+        month = month + 1;
+        % Reset to Jan
+        if month > 12;
+            month = 1;
+        end
+        % Load TM
         if month < 10
             load(strcat(loadPath, num2str(month), '.mat'));
         else
             load(strcat(loadPath1, num2str(month), '.mat'));
         end
+        
+        % Preparing for timestepping. 43200s.
         Aexp = Ix + (12*60*60)*Aexp;
         Aimp = Aimp^(36);
-        month = month + 1;
-        if month >= 13;
-            month = 1;
-        end
+     
     end
     N =  Aimp * ( Aexp  * N);
     P =  Aimp * ( Aexp  * P);
     Z =  Aimp * ( Aexp  * Z);
 
-%     for j=1:length(N)
-%         [t, Y] = ode23tb(@ode_npz, [0 0.5], [N(j) P(j) Z(j)], opts, param, i, surf_ind, Ybox(1:surf_ind), j);
-%         if mod(j,10000) == 0
-%             j
-%         end
-%         N(j) = Y(1);
-%         P(j) = Y(2);
-%         Z(j) = Y(3);
-%     end
     for j=1:length(layer)
         [t, Y] = ode23(@ode_npz, [0 0.5], [N(layerind(j)+1:layerind(j+1))'...
              P(layerind(j)+1:layerind(j+1))' Z(layerind(j)+1:layerind(j+1))']...
-            , opts, param, i, surf_ind, Ybox(1:surf_ind), j, layerind, layer);
-        %if mod(j,1) == 0
-        %    j
-        %end
+            , [], param, i, surf_ind, Ybox(1:surf_ind), j, layer);
+        
         N(layerind(j)+1:layerind(j+1)) = Y(end,1:layer(j));
         P(layerind(j)+1:layerind(j+1)) = Y(end,layer(j)+1:2*layer(j));
         Z(layerind(j)+1:layerind(j+1)) = Y(end,2*layer(j)+1:3*layer(j));
     end
-    %N = Y(end, 1:52749)'; 
-    %P = Y(end, 52749+1:52749*2)';
-    %Z = Y(end, 52749*2+1:52749*3)';
 
     N(N < 0) = 0;
     P(P < 0) = 0;
     Z(Z < 0) = 0;
+    
+    Nm(:,month) = Nm(:,month) + N(1:surf_ind);
+    Pm(:,month) = Pm(:,month) + P(1:surf_ind);
+    Zm(:,month) = Zm(:,month) + Z(1:surf_ind);
+    
+    Nd(:,i) = N(1:surf_ind);
+    Pd(:,i) = P(1:surf_ind);
+    Zd(:,i) = Z(1:surf_ind);
+    
+    % 
     if mod(i,60) == 0
-        i
-        Nn = matrixToGrid(N, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
-        Pn = matrixToGrid(P, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
-        Zn = matrixToGrid(Z, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
-        figure(1)
-        clf(1)
-        surface(x,y, Nn(:,:,1)')
-        %set(gcf, "zdata", Nn(:,:,1)')
-        colorbar
-        drawnow
-        %caxis([0,4])
-        figure(2)
-        clf(2)
-        surface(x,y, Pn(:,:,1)')
-        colorbar
-        drawnow
-        figure(3)
-        clf(3)
-        surface(x,y, Zn(:,:,1)')
-        colorbar
-        drawnow
+       disp(['t=',num2str(i)]);
     end
 end
-%%
+%% Convert back to grid format
 N = matrixToGrid(N, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
 P = matrixToGrid(P, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
 Z = matrixToGrid(Z, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
+%% Monthly mean plots
+mon_mean = [31 28 31 30 31 30 31 31 30 31 30 31]*2;
+labels = {'Jan' 'Feb' 'Mar' 'Apr' 'May' 'Jun' 'Jul' 'Aug' 'Sep' 'Oct' 'Nov' 'Dec'};
+for i=1:12
+ 
+    Nm1(:,:,i) = matrixToGrid(Nm(:,i), (1:surf_ind), '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat') / mon_mean(i);
+    Pm1(:,:,i) = matrixToGrid(Pm(:,i), (1:surf_ind), '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat') / mon_mean(i);
+    Zm1(:,:,i) = matrixToGrid(Zm(:,i), (1:surf_ind), '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat') / mon_mean(i);
+    
+    h = figure('rend','painters','pos',[10 10 900 1000])
+    subplot(3,1,1)
+    hold on
+    axesm eckert4;
+    ax = worldmap('world');
+    setm(ax, 'Origin', [0 200 0])
+    surfacem(y,xp,Nm1(:,:,i)');
+    geoshow('landareas.shp', 'FaceColor', [0.5 1.0 0.5],'EdgeColor',[0.5 1.0 0.5]);
+    c=colorbar;
+    caxis([0 10])
+    c.Label.String='concentration';
+    title(strcat('Nutrients month: ', labels(i)))
+
+    subplot(3,1,2)
+    hold on
+    axesm eckert4;
+    ax = worldmap('world');
+    setm(ax, 'Origin', [0 200 0])
+    surfacem(y,xp,Pm1(:,:,i)');
+    geoshow('landareas.shp', 'FaceColor', [0.5 1.0 0.5],'EdgeColor',[0.5 1.0 0.5]);
+    c=colorbar;
+    caxis([0 10])
+    c.Label.String='concentration';
+    title(strcat('Phytoplankton month: ', labels(i)))
+    
+    subplot(3,1,3)
+    hold on
+    axesm eckert4;
+    ax = worldmap('world');
+    setm(ax, 'Origin', [0 200 0])
+    surfacem(y,xp,Zm1(:,:,i)');
+    geoshow('landareas.shp', 'FaceColor', [0.5 1.0 0.5],'EdgeColor',[0.5 1.0 0.5]);
+    c=colorbar;
+    caxis([0 4])
+    c.Label.String='concentration';
+    title(strcat('Zooplankton month: ', labels(i)))
+
+    frame = getframe(h);
+    im = frame2im(frame);
+    [imind,cm] = rgb2ind(im,256);
+    % Write to the GIF File
+    if i == 1
+        imwrite(imind,cm,'seasonal.gif','gif', 'Loopcount',inf, 'DelayTime',1.2);
+    else
+        imwrite(imind,cm,'seasonal.gif','gif','WriteMode','append', 'DelayTime',1.2);
+    end
+end
+
+%% Plot transect of the Atlantic
+for i=1:730
+    Nd1(:,:,i) = matrixToGrid(Nd(:,i), (1:surf_ind), '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
+    Pd1(:,:,i) = matrixToGrid(Pd(:,i), (1:surf_ind), '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
+    Zd1(:,:,i) = matrixToGrid(Zd(:,i), (1:surf_ind), '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
+end
 %%
-save('../../bin/init_values.mat', 'N', 'P', 'Z')
+Pd1p = permute(Pd1, [2,3,1]);
+Nd1p = permute(Nd1, [2,3,1]);
+Zd1p = permute(Zd1, [2,3,1]);
+days = 0.5:0.5:365
+figure
+surface(days,y,Pd1p(:,:,121));
+shading interp
+figure
+surface(days,y,Zd1p(:,:,121));
+shading interp
+figure
+surface(days,y,Nd1p(:,:,121));
+shading interp
+%% Save new initial values
+%save("../../bin/init_values.mat", 'N', 'P', 'Z')
 %%
 g(1:surf_ind,1:365) = exp(-(0.025) * param.M).*(1-0.8*sin(pi.*Ybox(1:surf_ind)/180).*cos(2.*pi.*(1:365)./365));
-mon = [0 31 28 31 30 31 30 31 31 30 31 30 ];
-ticks = 1+cumsum(mon);
-labels = [{'J'} {'F'} {'M'} {'A'} {'M'} {'J'} {'J'} {'A'} {'S'} {'O'} {'N'} {'D'}];
+
 
 surface(1:365,Ybox(1:surf_ind),g)
 shading flat
@@ -176,7 +247,7 @@ Np = [N(:,:,:); N(1,:,:)];
 xp = [x-x(1) ;360];
 
 %%
-figure
+h = figure('rend','painters','pos',[10 10 900 1200])
 subplot(3,1,1)
 hold on
 axesm eckert4;
@@ -184,9 +255,9 @@ ax = worldmap('world');
 setm(ax, 'Origin', [0 200 0])
 surfacem(y,xp,N(:,:,1)');
 geoshow('landareas.shp', 'FaceColor', [0.5 1.0 0.5],'EdgeColor',[0.5 1.0 0.5]);
-c=colorbar;z
+c=colorbar;
 c.Label.String='concentration';
-title('Nutrients, Jan')
+title(strcat('Nutrients month = ', num2str(month)))
 
 subplot(3,1,2)
 hold on
@@ -197,7 +268,7 @@ surfacem(y,xp,P(:,:,1)');
 geoshow('landareas.shp', 'FaceColor', [0.5 1.0 0.5],'EdgeColor',[0.5 1.0 0.5]);
 c=colorbar;
 c.Label.String='concentration';
-title('Phytoplankton, Jan')
+title(strcat('Phytoplankton month = ', num2str(month)))
 
 subplot(3,1,3)
 hold on
@@ -208,5 +279,4 @@ surfacem(y,xp,Z(:,:,1)');
 geoshow('landareas.shp', 'FaceColor', [0.5 1.0 0.5],'EdgeColor',[0.5 1.0 0.5]);
 c=colorbar;
 c.Label.String='concentration';
-title('Zooplankton, Jan')
-
+title(strcat('Zooplankton month = ', num2str(month)))

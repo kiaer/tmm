@@ -37,7 +37,7 @@ Ix = speye(nb,nb);
 Aexpms = Ix + (12*60*60)*Aexpms;
 Aimpms = Aimpms^(36);
 %%
-H = 2; %years
+H = 5371; %years
 D = (1/2)/(730*H); 
 Cn = mat;
 
