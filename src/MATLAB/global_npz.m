@@ -71,7 +71,7 @@ xp = [x-x(1) ;360];
 
 % Finding the number of indicies in the surface layer
 surf_ind = length(find(bathy(:,:,1) == 1));
-
+    
 % Split into layers
 layer = permute(sum(sum(bathy)),[3,1,2]);
 layerind = [0 ; cumsum(layer)];
@@ -218,14 +218,16 @@ g(1:surf_ind,1:365) = exp(-(0.025) * param.M).*(1-0.8*sin(pi.*Ybox(1:surf_ind)/1
 
 
 surface(1:365,Ybox(1:surf_ind),g)
-shading flat
-xticks(ticks)
+shading interp
+xticks(ticks /2 + 1)
 xticklabels(labels)
-ylabel('Latitude')
+ylabel('Latitude [\circ]')
+xlabel('Month')
 c=colorbar;
-c.Label.String  = 'growthrate';
+c.Label.String  = 'Growthrate';
 xlim([1 sum(mon)+31])
-ylim([-80 80])
+ylim([-77.3438 80.1562])
+print('../../fig/growthrate', '-dpng', '-r300');
 
 %%
 figure
