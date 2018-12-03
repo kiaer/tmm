@@ -36,8 +36,8 @@ Aexpms = Ix + (12*60*60)*Aexpms;        % Discretizing Aexpms for Explicit
                                         % timesteps
 Aimpms = Aimpms^(36);                   % modifying Aimpms to use 12h timesteps
 %% C14 model
-H = 5000;                               % years
-D = (1/2)/(730*H);                      % decay
+H = 5000;                               % halftime (years)
+D = (1/2)/(730*H);                      % decay (per 12h)
 Cn = mat;                               % initializing concentration
 
 % iterating through time for 10 yrs using 12h steps
