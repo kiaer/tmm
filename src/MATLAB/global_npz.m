@@ -137,58 +137,118 @@ Z = matrixToGrid(Z, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MI
 %% Monthly mean plots
 mon_mean = [31 28 31 30 31 30 31 31 30 31 30 31]*2;
 labels = {'Jan' 'Feb' 'Mar' 'Apr' 'May' 'Jun' 'Jul' 'Aug' 'Sep' 'Oct' 'Nov' 'Dec'};
+h = figure('Position', [50, 50, 900, 550]);
+set(gcf,'color','w');
 for i=1:12
  
     Nm1(:,:,i) = matrixToGrid(Nm(:,i), (1:surf_ind), '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat') / mon_mean(i);
-    Pm1(:,:,i) = matrixToGrid(Pm(:,i), (1:surf_ind), '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat') / mon_mean(i);
-    Zm1(:,:,i) = matrixToGrid(Zm(:,i), (1:surf_ind), '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat') / mon_mean(i);
+%     Pm1(:,:,i) = matrixToGrid(Pm(:,i), (1:surf_ind), '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat') / mon_mean(i);
+%     Zm1(:,:,i) = matrixToGrid(Zm(:,i), (1:surf_ind), '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat') / mon_mean(i);
     
-    h = figure('rend','painters','pos',[10 10 900 1000])
-    subplot(3,1,1)
-    hold on
-    axesm eckert4;
-    ax = worldmap('world');
-    setm(ax, 'Origin', [0 200 0])
-    surfacem(y,xp,Nm1(:,:,i)');
-    geoshow('landareas.shp', 'FaceColor', [0.5 1.0 0.5],'EdgeColor',[0.5 1.0 0.5]);
-    c=colorbar;
-    caxis([0 10])
-    c.Label.String='concentration';
-    title(strcat('Nutrients month: ', labels(i)))
+     ax = axesm ( 'Origin',  [0 -90 0], 'MapProjection','eckert4', 'Grid', 'on', 'Frame', 'on',...
+        'ScaleFactor', 1, 'labelrotation', 'off', 'FLineWidth', 2);
+    ax.XColor = 'white';
+    ax.YColor = 'white';
+    axis tight manual
 
-    subplot(3,1,2)
-    hold on
-    axesm eckert4;
-    ax = worldmap('world');
-    setm(ax, 'Origin', [0 200 0])
-    surfacem(y,xp,Pm1(:,:,i)');
-    geoshow('landareas.shp', 'FaceColor', [0.5 1.0 0.5],'EdgeColor',[0.5 1.0 0.5]);
-    c=colorbar;
+    %plabel('PlabelLocation',20, 'PLabelMeridian', 91)
+    surfacem(y,xp ,Nm1(:,:,i)');
+    %shading interp
+    geoshow('landareas.shp', 'FaceColor', [0.8 0.8 0.8], 'EdgeColor', 'black');
     caxis([0 10])
-    c.Label.String='concentration';
-    title(strcat('Phytoplankton month: ', labels(i)))
-    
-    subplot(3,1,3)
-    hold on
-    axesm eckert4;
-    ax = worldmap('world');
-    setm(ax, 'Origin', [0 200 0])
-    surfacem(y,xp,Zm1(:,:,i)');
-    geoshow('landareas.shp', 'FaceColor', [0.5 1.0 0.5],'EdgeColor',[0.5 1.0 0.5]);
-    c=colorbar;
-    caxis([0 4])
-    c.Label.String='concentration';
-    title(strcat('Zooplankton month: ', labels(i)))
+    c = colorbar('southoutside', 'FontSize',14);
+    c.Label.String  = 'Concentration [mmol m^{-3}]';
+    box off
+    title('Nutrients')
+    text(0, 1, labels(i),'Units','normalized')
 
+    drawnow
     frame = getframe(h);
     im = frame2im(frame);
     [imind,cm] = rgb2ind(im,256);
     % Write to the GIF File
     if i == 1
-        imwrite(imind,cm,'seasonal.gif','gif', 'Loopcount',inf, 'DelayTime',1.2);
+        imwrite(imind,cm,'../../fig/seasonal_nutrients.gif','gif', 'Loopcount',inf);
     else
-        imwrite(imind,cm,'seasonal.gif','gif','WriteMode','append', 'DelayTime',1.2);
+        imwrite(imind,cm,'../../fig/seasonal_nutrients.gif','gif','WriteMode','append');
     end
+    clf
+end
+%% Phytoplankton GIF
+h = figure('Position', [50, 50, 900, 550]);
+set(gcf,'color','w');
+for i=1:12
+ 
+    %Nm1(:,:,i) = matrixToGrid(Nm(:,i), (1:surf_ind), '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat') / mon_mean(i);
+    Pm1(:,:,i) = matrixToGrid(Pm(:,i), (1:surf_ind), '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat') / mon_mean(i);
+%     Zm1(:,:,i) = matrixToGrid(Zm(:,i), (1:surf_ind), '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat') / mon_mean(i);
+    
+     ax = axesm ( 'Origin',  [0 -90 0], 'MapProjection','eckert4', 'Grid', 'on', 'Frame', 'on',...
+        'ScaleFactor', 1, 'labelrotation', 'off', 'FLineWidth', 2);
+    ax.XColor = 'white';
+    ax.YColor = 'white';
+    axis tight manual
+
+    %plabel('PlabelLocation',20, 'PLabelMeridian', 91)
+    surfacem(y,xp ,Pm1(:,:,i)');
+    %shading interp
+    geoshow('landareas.shp', 'FaceColor', [0.8 0.8 0.8], 'EdgeColor', 'black');
+    caxis([0 10])
+    c = colorbar('southoutside', 'FontSize',14);
+    c.Label.String  = 'Concentration [mmol m^{-3}]';
+    box off
+    title('Phytoplankton')
+    text(0, 1, labels(i),'Units','normalized')
+
+    drawnow
+    frame = getframe(h);
+    im = frame2im(frame);
+    [imind,cm] = rgb2ind(im,256);
+    % Write to the GIF File
+    if i == 1
+        imwrite(imind,cm,'../../fig/seasonal_phytoplankton.gif','gif', 'Loopcount',inf);
+    else
+        imwrite(imind,cm,'../../fig/seasonal_phytoplankton.gif','gif','WriteMode','append');
+    end
+    clf
+end
+%% Zooplankton GIF
+h = figure('Position', [50, 50, 900, 550]);
+set(gcf,'color','w');
+for i=1:12
+ 
+    %Nm1(:,:,i) = matrixToGrid(Nm(:,i), (1:surf_ind), '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat') / mon_mean(i);
+%     Pm1(:,:,i) = matrixToGrid(Pm(:,i), (1:surf_ind), '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat') / mon_mean(i);
+    Zm1(:,:,i) = matrixToGrid(Zm(:,i), (1:surf_ind), '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat') / mon_mean(i);
+    
+     ax = axesm ( 'Origin',  [0 -90 0], 'MapProjection','eckert4', 'Grid', 'on', 'Frame', 'on',...
+        'ScaleFactor', 1, 'labelrotation', 'off', 'FLineWidth', 2);
+    ax.XColor = 'white';
+    ax.YColor = 'white';
+    axis tight manual
+
+    %plabel('PlabelLocation',20, 'PLabelMeridian', 91)
+    surfacem(y,xp ,Zm1(:,:,i)');
+    %shading interp
+    geoshow('landareas.shp', 'FaceColor', [0.8 0.8 0.8], 'EdgeColor', 'black');
+    caxis([0 4])
+    c = colorbar('southoutside', 'FontSize',14);
+    c.Label.String  = 'Concentration [mmol m^{-3}]';
+    box off
+    title('Zooplankton')
+    text(0, 1, labels(i),'Units','normalized')
+
+    drawnow
+    frame = getframe(h);
+    im = frame2im(frame);
+    [imind,cm] = rgb2ind(im,256);
+    % Write to the GIF File
+    if i == 1
+        imwrite(imind,cm,'../../fig/seasonal_zoo.gif','gif', 'Loopcount',inf);
+    else
+        imwrite(imind,cm,'../../fig/seasonal_zoo.gif','gif','WriteMode','append');
+    end
+    clf
 end
 
 %% Plot transect of the Atlantic
@@ -201,10 +261,18 @@ end
 Pd1p = permute(Pd1, [2,3,1]);
 Nd1p = permute(Nd1, [2,3,1]);
 Zd1p = permute(Zd1, [2,3,1]);
-days = 0.5:0.5:365
+days = 0.5:0.5:365;
 figure
 surface(days,y,Pd1p(:,:,121));
+xlim([0 365])
+ylim([-71 71])
 shading interp
+c = colorbar('FontSize',14)
+c.Label.String  = 'Concentration [mmol m^{-3}]';
+xlabel('Time [days]')
+ylabel('Latitude [\circ]')
+print('../../fig/atlantic_phyto','-dpng', '-r300')
+%%
 figure
 surface(days,y,Zd1p(:,:,121));
 shading interp

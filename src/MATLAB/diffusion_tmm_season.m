@@ -6,7 +6,7 @@ close all
 clc
 
 %%
-%load("../../bin/MITgcm/Matrix10/TMs/matrix_nocorrection.mat");
+%load("../../bin/MITgcm/Matwwwwrix10/TMs/matrix_nocorrection.mat");
 
 load('../../bin/MITgcm/grid.mat');
 load('../../bin/MITgcm/config_data.mat');
@@ -56,21 +56,94 @@ end
 Dd(isnan(Dd))=0;
 Ddp = [Dd(:,:,:); Dd(1,:,:)];
 xp = [x-x(1) ;360];
-mon ={ 'Jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'};
-    figure 
-% for i = 1%:6
-%     %subplot(2,3,i)
-%     hold on
-%     axesm eckert4;
-%     ax = worldmap('world');
-%     setm(ax, 'Origin', [0 200 0])
-%     surfacem(y,xp,Dd(:,:,i)');
-%     geoshow('landareas.shp', 'FaceColor', [0.5 1.0 0.5]);
-%     caxis([0 0.6])
-%     colorbar
-%     title(mon(i))
-%    
-% end
+%%
+%xp = xp - 90
+%xp = circshift(xp, -180)
+mon ={ 'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'};
+%setappdata(gcf, 'SubplotDefaultAxesLocation', [0, 0, 1, 1]);
+%%
+figure('Position', [0, 0, 700, 400]);
+set(gcf,'color','w');
+%subplot(2,2,1)
+hold on
+ax = axesm ( 'Origin',  [0 -90 0], 'MapProjection','eckert4', 'Grid', 'on', 'Frame', 'on',...
+    'ScaleFactor', 1, 'labelrotation', 'off', 'FLineWidth', 2)
+ax.XColor = 'white'
+ax.YColor = 'white'
+
+%plabel('PlabelLocation',20, 'PLabelMeridian', 91)
+surfacem(y,xp ,Ddp(:,:,1)');
+%shading interp
+geoshow('landareas.shp', 'FaceColor', [0.8 0.8 0.8], 'EdgeColor', 'black');
+caxis([0 0.6])
+c = colorbar('southoutside', 'FontSize',14);
+c.Label.String  = 'Diffusion rate [1/d]';
+box off
+print('../../fig/diff_jan', '-dpng', '-r300');
+
+figure('Position', [0, 0, 700, 400]);
+set(gcf,'color','w');
+%subplot(2,2,1)
+hold on
+ax = axesm ( 'Origin',  [0 -90 0], 'MapProjection','eckert4', 'Grid', 'on', 'Frame', 'on',...
+    'ScaleFactor', 1, 'labelrotation', 'off', 'FLineWidth', 2)
+ax.XColor = 'white'
+ax.YColor = 'white'
+
+%plabel('PlabelLocation',20, 'PLabelMeridian', 91)
+surfacem(y,xp ,Ddp(:,:,4)');
+%shading interp
+geoshow('landareas.shp', 'FaceColor', [0.8 0.8 0.8], 'EdgeColor', 'black');
+caxis([0 0.6])
+c = colorbar('southoutside', 'FontSize',14);
+c.Label.String  = 'Diffusion rate [1/d]';
+box off
+pause(1)
+print('../../fig/diff_apr', '-dpng', '-r300');
+
+
+figure('Position', [0, 0, 700, 400]);
+set(gcf,'color','w');
+
+%subplot(2,2,1)
+hold on
+ax = axesm ( 'Origin',  [0 -90 0], 'MapProjection','eckert4', 'Grid', 'on', 'Frame', 'on',...
+    'ScaleFactor', 1, 'labelrotation', 'off', 'FLineWidth', 2)
+ax.XColor = 'white'
+ax.YColor = 'white'
+
+%plabel('PlabelLocation',20, 'PLabelMeridian', 91)
+surfacem(y,xp ,Ddp(:,:,7)');
+%shading interp
+geoshow('landareas.shp', 'FaceColor', [0.8 0.8 0.8], 'EdgeColor', 'black');
+caxis([0 0.6])
+c = colorbar('southoutside', 'FontSize',14);
+c.Label.String  = 'Diffusion rate [1/d]';
+box off
+pause(1)
+print('../../fig/diff_jul', '-dpng', '-r300');
+
+figure('Position', [0, 0, 700, 400]);
+set(gcf,'color','w');
+
+%subplot(2,2,1)
+hold on
+ax = axesm ( 'Origin',  [0 -90 0], 'MapProjection','eckert4', 'Grid', 'on', 'Frame', 'on',...
+    'ScaleFactor', 1, 'labelrotation', 'off', 'FLineWidth', 2)
+ax.XColor = 'white'
+ax.YColor = 'white'
+
+%plabel('PlabelLocation',20, 'PLabelMeridian', 91)
+surfacem(y,xp ,Ddp(:,:,10)');
+%shading interp
+geoshow('landareas.shp', 'FaceColor', [0.8 0.8 0.8], 'EdgeColor', 'black');
+caxis([0 0.6])
+c = colorbar('southoutside', 'FontSize',14);
+c.Label.String  = 'Diffusion rate [1/d]';
+box off
+pause(1)
+print('../../fig/diff_oct', '-dpng', '-r300');
+
 %%
 % figure
 % for i = 7%7:12
@@ -89,20 +162,29 @@ mon ={ 'Jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'};
 % %     
 %  end
 %%
+h = figure('Position', [50, 50, 900, 550]);
+set(gcf,'color','w');
+
 for i = 1:12
     
-    h=figure;
-    hold on
-    axesm eckert4;
-    ax = worldmap('world');
-    setm(ax, 'Origin', [0 200 0])
-    surfacem(y,xp,Ddp(:,:,i)');
-    geoshow('landareas.shp', 'FaceColor', [0.5 1.0 0.5],'EdgeColor',[0.5 1.0 0.5]);
-    caxis([0 0.6])
-    c=colorbar;
-    c.Label.String='[d^{-1}]';
-    title(mon(i))
+    %subplot(2,2,1)
     
+    ax = axesm ( 'Origin',  [0 -90 0], 'MapProjection','eckert4', 'Grid', 'on', 'Frame', 'on',...
+        'ScaleFactor', 1, 'labelrotation', 'off', 'FLineWidth', 2);
+    ax.XColor = 'white';
+    ax.YColor = 'white';
+    axis tight manual
+
+    %plabel('PlabelLocation',20, 'PLabelMeridian', 91)
+    surfacem(y,xp ,Ddp(:,:,i)');
+    %shading interp
+    geoshow('landareas.shp', 'FaceColor', [0.8 0.8 0.8], 'EdgeColor', 'black');
+    caxis([0 0.6])
+    c = colorbar('southoutside', 'FontSize',14);
+    c.Label.String  = 'Diffusion rate [1/d]';
+    box off
+    title(mon(i))
+    drawnow
     
     % Capture the plot as an image
     frame = getframe(h);
@@ -110,11 +192,10 @@ for i = 1:12
     [imind,cm] = rgb2ind(im,256);
     % Write to the GIF File
     if i == 1
-        imwrite(imind,cm,'downwelling','gif', 'Loopcount',inf);
+        imwrite(imind,cm,'../../fig/downwelling.gif','gif', 'Loopcount',inf);
     else
-        imwrite(imind,cm,'downwelling','gif','WriteMode','append');
+        imwrite(imind,cm,'../../fig/downwelling.gif','gif','WriteMode','append');
     end
-    
 end
 %%
 % Du(isnan(Du))=0;

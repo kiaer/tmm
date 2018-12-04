@@ -193,8 +193,8 @@ shading flat
 xlabel('South - North [km]')
 ylabel('depth [km]')
 title(['TMM solution 10 yrs, Sol. time =',num2str(Solvetime_TMMreaction),'s'])
-set(gca,'FontSize', 16)
-
+set(gca,'FontSize', 14)
+print('../../fig/2d_tmm_sol', '-dpng', '-r300')
 
 %%
 tspan = 0:100;
@@ -216,7 +216,8 @@ xlabel('South - North [km]')
 ylabel('depth [km]')
 c.Label.String='concentration';
 title(['ODE solution 10 yrs, Sol. time =',num2str(Solvetime_ODEreaction),'s'])
-set(gca,'FontSize', 16)
+set(gca,'FontSize', 14)
+print('../../fig/2d_ode_sol', '-dpng', '-r300')
 
 
 figure
@@ -229,7 +230,8 @@ xlabel('South - North [km]')
 ylabel('depth [km]')
 c.Label.String='difference in concentration';
 title('ODE solution - TMMsolution')
-set(gca,'FontSize', 16)
+set(gca,'FontSize', 14)
+print('../../fig/2d_ode_tm_diff', '-dpng', '-r300')
 
 
 figure

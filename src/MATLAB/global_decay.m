@@ -19,44 +19,13 @@ load('../../bin/MITgcm/grid.mat');
 load('../../bin/MITgcm/config_data.mat');
 load('../../bin/MITgcm/Matrix5/Data/boxes.mat')
 
-%% Sparsity plots
-figure
-subplot(1,2,1)
-spy(Aexpms)
-title('a)','position',[-0.3*10^4 -0.3*10^4])
-
-subplot(1,2,2)
-spy(Aimpms)
-title('b)','position',[-0.3*10^4 -0.3*10^4])
-
-print('../../fig/sparsity', '-dpng', '-r300');
-
 %% Initializing arrays
 
 C = zeros(128,64,15);                   % Concentration matrix for tracer
-C(60:80,12,1) = 10;                           % Initial condition for tracer
+C(:,:,1) = 1;                           % Initial condition for tracer
 
 % vector representation of C:
 mat = gridToMatrix(C, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
-C = matrixToGrid(mat, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
-figure('Position', [0, 0, 700, 400]);
-set(gcf,'color','w');
-%subplot(2,2,1)
-hold on
-ax = axesm ( 'Origin',  [0 -90 0], 'MapProjection','eckert4', 'Grid', 'on', 'Frame', 'on',...
-    'ScaleFactor', 1, 'labelrotation', 'off', 'FLineWidth', 2)
-ax.XColor = 'white'
-ax.YColor = 'white'
-box off
-
-%plabel('PlabelLocation',20, 'PLabelMeridian', 91)
-h=surfacem(y,xp ,C(:,:,1)');
-%shading interp
-geoshow('landareas.shp', 'FaceColor', [0.8 0.8 0.8], 'EdgeColor', 'black');
-c = colorbar('southoutside', 'FontSize',14);
-c.Label.String  = 'Tacer Concentration';
-print('../../fig/tracer_south_init', '-dpng', '-r300');
-
 
 
 %% Preparing transport matrices for time stepping
@@ -66,20 +35,21 @@ Aexpms = Ix + (12*60*60)*Aexpms;        % Discretizing Aexpms for Explicit
                                         % euler time stepping using 12h
                                         % timesteps
 Aimpms = Aimpms^(36);                   % modifying Aimpms to use 12h timesteps
-%% Diagnostic plots
+%% C14 model
+H = 5000;                               % halftime (years)
+D = (1/2)/(730*H);                      % decay (per 12h)
 Cn = mat;                               % initializing concentration
 
 % iterating through time for 10 yrs using 12h steps
-for i=1:730*5
-    % converting 
-to grid format:
-    %Cn = matrixToGrid(Cn, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
+for i=1:730
+    % converting to grid format:
+    Cn = matrixToGrid(Cn, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
     % setting surface to fixed value
-    %Cn(:,:,1) = 1;
+    Cn(:,:,1) = 1;
     % Converting concentration field to matrix format (vector)
-    %Cn = gridToMatrix(Cn, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
+    Cn = gridToMatrix(Cn, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
     % time stepping with decay
-    Cn =  Aimpms * ( Aexpms  * Cn);
+    Cn =  Aimpms * ( Aexpms  * Cn - D * Cn);
 end
 %% Conservation of mass
 % only consistent with closed boundary conditions and no source terms
@@ -97,47 +67,17 @@ COM = sum(COM_c)-sum(COM_cn);       % Conservation of mass. Should be small.
 
 % converting concentration vector to grid
 Cn = matrixToGrid(Cn, [], '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat');
-xp = [x-x(1) ;360];
 
-%%
 % contour plot of surface values
-figure('Position', [0, 0, 700, 400]);
-set(gcf,'color','w');
-%subplot(2,2,1)
-hold on
-ax = axesm ( 'Origin',  [0 -90 0], 'MapProjection','eckert4', 'Grid', 'on', 'Frame', 'on',...
-    'ScaleFactor', 1, 'labelrotation', 'off', 'FLineWidth', 2)
-ax.XColor = 'white'
-ax.YColor = 'white'
+figure
+contourf(Cn(:,:,1)', 5)
+colorbar
 
-%plabel('PlabelLocation',20, 'PLabelMeridian', 91)
-h=surfacem(y,xp ,Cn(:,:,1)');
-%shading interp
-geoshow('landareas.shp', 'FaceColor', [0.8 0.8 0.8], 'EdgeColor', 'black');
-c = colorbar('southoutside', 'FontSize',14);
-c.Label.String  = 'Tacer Concentration';
-z1 = get(h,'ZData');
-set(h,'ZData',z1-10)  
-plot(-2:2, ones(5)*-1.08 ,'color','r','linewidth',1)
-
-box off
-print('../../fig/tracer_south', '-dpng', '-r300');
-
-%Transect plot at longitude 30 (Atlantic)
-figure('Position', [0, 0, 700, 400]);
+% Transect plot at longitude 30 (Atlantic)
+figure
 Cx = permute(Cn, [1,3,2]);
-%%
-%xp1 = circshift(x, -90)
-contourf(x,z, Cx(:,:,12)', 6)
-xlabel('Degree [\circ]')
-ylabel('Depth [m]')
-c = colorbar()
-c.Label.String  = 'Tacer Concentration';
-set(gca,'FontSize', 14)
-set(gca,'Color',[0.8 0.8 0.8])
-
+contourf(x,z,Cx(:,:,30)',5)
 axis ij
-print('../../fig/tracer_south_transect', '-dpng', '-r300');
 
 %% 
 figure
