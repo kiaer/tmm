@@ -7,7 +7,7 @@ clear all
 close all
 %%
 
-param.D       = 0.0005; %diffusion constant [m^2 /d]
+param.D       = 0.0005; %diffusion constant [km^2 /yr]
 param.zmax    = 4;  %depth of water column [m]
 param.zGrid   = 20;  %number of grid cells
 
@@ -69,20 +69,24 @@ axis ij
 title('u')
 xlabel('South - North [km]')
 ylabel('depth [km]')
-c=colorbar;
+c=colorbar('FontSize',14);
 c.Label.String='velocity [km/yr]';
-set(gca,'FontSize', 16)
+set(gca,'FontSize', 14)
+print('../../fig/2d_U', '-dpng', '-r300')
+
 
 figure
 surface(param.x,param.z,param.w_vec)
 axis ij
 shading interp
 title('w')
-c=colorbar;
+c=colorbar('FontSize',14);
 xlabel('South - North [km]')
 ylabel('depth [km]')
 c.Label.String='velocity [km/yr]';
-set(gca,'FontSize', 16)
+set(gca,'FontSize', 14)
+print('../../fig/2d_W', '-dpng', '-r300')
+
 
 %%
 tspan = 0:1;
@@ -233,10 +237,13 @@ title('ODE solution - TMMsolution')
 set(gca,'FontSize', 14)
 print('../../fig/2d_ode_tm_diff', '-dpng', '-r300')
 
-
+%%
 figure
 spy(A)
-title('Structure of transport matrix')
+set(gca,'FontSize', 14)
+print('../../fig/sparsity_2d', '-dpng', '-r300')
+
+%title('Structure of transport matrix')
 
 %%
 [X,Z]=meshgrid(param.x,param.z);

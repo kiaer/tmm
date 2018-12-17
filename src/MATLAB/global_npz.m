@@ -140,7 +140,8 @@ labels = {'Jan' 'Feb' 'Mar' 'Apr' 'May' 'Jun' 'Jul' 'Aug' 'Sep' 'Oct' 'Nov' 'Dec
 h = figure('Position', [50, 50, 900, 550]);
 set(gcf,'color','w');
 for i=1:12
- 
+% h = figure('Position', [50, 50, 900, 550]);
+% set(gcf,'color','w');
     Nm1(:,:,i) = matrixToGrid(Nm(:,i), (1:surf_ind), '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat') / mon_mean(i);
 %     Pm1(:,:,i) = matrixToGrid(Pm(:,i), (1:surf_ind), '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat') / mon_mean(i);
 %     Zm1(:,:,i) = matrixToGrid(Zm(:,i), (1:surf_ind), '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat') / mon_mean(i);
@@ -161,6 +162,8 @@ for i=1:12
     box off
     title('Nutrients')
     text(0, 1, labels(i),'Units','normalized')
+    
+%     print(['../../fig/nutrients_',num2str(i)], '-dpng', '-r300');
 
     drawnow
     frame = getframe(h);
@@ -178,7 +181,8 @@ end
 h = figure('Position', [50, 50, 900, 550]);
 set(gcf,'color','w');
 for i=1:12
- 
+% h = figure('Position', [50, 50, 900, 550]);
+% set(gcf,'color','w');
     %Nm1(:,:,i) = matrixToGrid(Nm(:,i), (1:surf_ind), '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat') / mon_mean(i);
     Pm1(:,:,i) = matrixToGrid(Pm(:,i), (1:surf_ind), '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat') / mon_mean(i);
 %     Zm1(:,:,i) = matrixToGrid(Zm(:,i), (1:surf_ind), '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat') / mon_mean(i);
@@ -200,6 +204,8 @@ for i=1:12
     title('Phytoplankton')
     text(0, 1, labels(i),'Units','normalized')
 
+%    print(['../../fig/seasonal_phytoplankton_',num2str(i)], '-dpng', '-r300');
+
     drawnow
     frame = getframe(h);
     im = frame2im(frame);
@@ -216,7 +222,8 @@ end
 h = figure('Position', [50, 50, 900, 550]);
 set(gcf,'color','w');
 for i=1:12
- 
+%h = figure('Position', [50, 50, 900, 550]);
+%set(gcf,'color','w');
     %Nm1(:,:,i) = matrixToGrid(Nm(:,i), (1:surf_ind), '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat') / mon_mean(i);
 %     Pm1(:,:,i) = matrixToGrid(Pm(:,i), (1:surf_ind), '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat') / mon_mean(i);
     Zm1(:,:,i) = matrixToGrid(Zm(:,i), (1:surf_ind), '../../bin/MITgcm/Matrix5/Data/boxes.mat', '../../bin/MITgcm/grid.mat') / mon_mean(i);
@@ -238,6 +245,8 @@ for i=1:12
     title('Zooplankton')
     text(0, 1, labels(i),'Units','normalized')
 
+%    print(['../../fig/seasonal_zooplankton_',num2str(i)], '-dpng', '-r300');
+    
     drawnow
     frame = getframe(h);
     im = frame2im(frame);
