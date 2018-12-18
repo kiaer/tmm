@@ -241,7 +241,7 @@ print('../../fig/2d_ode_tm_diff', '-dpng', '-r300')
 figure
 spy(A)
 set(gca,'FontSize', 14)
-print('../../fig/sparsity_2d', '-dpng', '-r300')
+print('../../fig/sparsity_2d_ideal', '-dpng', '-r300')
 
 %title('Structure of transport matrix')
 

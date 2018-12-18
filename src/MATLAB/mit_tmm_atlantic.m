@@ -63,7 +63,7 @@ Aimpms = Aimpms^(36);                   % modifying Aimpms to use 12h timesteps
 %% Diagnostic plots
 Cn = mat;                               % initializing concentration
 
-% iterating through time for 10 yrs using 12h steps
+% iterating through time for 5 yrs using 12h steps
 for i=1:730*5
     Cn =  Aimpms * ( Aexpms  * Cn);
 end
