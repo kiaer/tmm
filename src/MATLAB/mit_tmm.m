@@ -54,7 +54,7 @@ box off
 h=surfacem(y,xp ,C(:,:,1)');
 %shading interp
 geoshow('landareas.shp', 'FaceColor', [0.8 0.8 0.8], 'EdgeColor', 'black');
-c = colorbar('southoutside', 'FontSize',14);
+c = colorbar('southoutside', 'FontSize',18);
 c.Label.String  = 'Tracer Concentration';
 print('../../fig/tracer_south_init', '-dpng', '-r300');
 
@@ -115,11 +115,11 @@ ax.YColor = 'white'
 h=surfacem(y,xp ,Cn(:,:,1)');
 %shading interp
 geoshow('landareas.shp', 'FaceColor', [0.8 0.8 0.8], 'EdgeColor', 'black');
-c = colorbar('southoutside', 'FontSize',14);
+c = colorbar('southoutside', 'FontSize',18);
 c.Label.String  = 'Tracer Concentration';
-z1 = get(h,'ZData');
-set(h,'ZData',z1-10)  
-plot(-2:2, ones(5)*-1.08 ,'color','r','linewidth',1)
+% z1 = get(h,'ZData');
+% set(h,'ZData',z1-10)  
+% plot(-2:2, ones(5)*-1.08 ,'color','r','linewidth',1)
 
 box off
 print('../../fig/tracer_south', '-dpng', '-r300');
@@ -132,7 +132,7 @@ xlabel('Longitude [\circ]')
 ylabel('Depth [m]')
 c = colorbar()
 c.Label.String  = 'Tracer Concentration';
-set(gca,'FontSize', 14)
+set(gca,'FontSize', 18)
 set(gca,'Color',[0.8 0.8 0.8])
 xticks([0, 45 ,90 ,135, 180, 225, 270, 315])
 xticklabels({'0', '45 E', '90 E' ,'135 E', '180', '135 W' ,'90 W', '45 W'} )

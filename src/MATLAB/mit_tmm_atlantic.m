@@ -46,7 +46,7 @@ box off
 h=surfacem(y,xp ,C(:,:,1)');
 %shading interp
 geoshow('landareas.shp', 'FaceColor', [0.8 0.8 0.8], 'EdgeColor', 'black');
-c = colorbar('southoutside', 'FontSize',14);
+c = colorbar('southoutside', 'FontSize',18);
 c.Label.String  = 'Tracer Concentration';
 set(gca,'FontSize', 14)
 print('../../fig/tracer_atlantic_init', '-dpng', '-r300');
@@ -100,7 +100,7 @@ ax.YColor = 'white'
 h=surfacem(y,xp ,Cn(:,:,1)');
 %shading interp
 geoshow('landareas.shp', 'FaceColor', [0.8 0.8 0.8], 'EdgeColor', 'black');
-c = colorbar('southoutside', 'FontSize',14);
+c = colorbar('southoutside', 'FontSize',18);
 c.Label.String  = 'Tracer Concentration';
 %z1 = get(h,'ZData');
 %set(h,'ZData',z1-10)  
@@ -119,7 +119,7 @@ ylabel('Depth [m]')
 c = colorbar();
 colormap(parula(7))
 c.Label.String  = 'Tracer Concentration';
-set(gca,'FontSize', 14)
+set(gca,'FontSize', 18)
 set(gca,'Color',[0.8 0.8 0.8])
 
 axis ij

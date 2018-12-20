@@ -144,88 +144,45 @@ box off
 pause(1)
 print('../../fig/diff_oct', '-dpng', '-r300');
 
-%%
-% figure
-% for i = 7%7:12
-%     %subplot(2,3,i-6)
-%     hold on
-%     axesm eckert4;
-%     h = worldmap('world');
-%     set(h, 'Visible', 'off')
-%     % load coastlines
-%     % plotm(coastlat,coastlon)
-%     surfacem(y,x,Dd(:,:,i)');
-%     geoshow('landareas.shp', 'FaceColor', [0.5 1.0 0.5],'EdgeColor',[0.5 1.0 0.5]);
-%     colorbar
-%     caxis([0 0.6])
-%     title(mon(i))
-% %     
-%  end
-%%
-h = figure('Position', [50, 50, 900, 550]);
-set(gcf,'color','w');
+%% diffusive exchange rate at 50N 30W (North atlantic)
+DdP = permute(Dd,[3 1 2]);
+Dd_pos = zeros(12,1);
+Dd_pos(:) = DdP(:,118,50);
 
-for i = 1:12
-    
-    %subplot(2,2,1)
-    
-    ax = axesm ( 'Origin',  [0 -90 0], 'MapProjection','eckert4', 'Grid', 'on', 'Frame', 'on',...
-        'ScaleFactor', 1, 'labelrotation', 'off', 'FLineWidth', 2);
-    ax.XColor = 'white';
-    ax.YColor = 'white';
-    axis tight manual
-
-    %plabel('PlabelLocation',20, 'PLabelMeridian', 91)
-    surfacem(y,xp ,Ddp(:,:,i)');
-    %shading interp
-    geoshow('landareas.shp', 'FaceColor', [0.8 0.8 0.8], 'EdgeColor', 'black');
-    caxis([0 0.6])
-    c = colorbar('southoutside', 'FontSize',14);
-    c.Label.String  = 'Diffusion rate [1/d]';
-    box off
-    title(mon(i))
-    drawnow
-    
-    % Capture the plot as an image
-    frame = getframe(h);
-    im = frame2im(frame);
-    [imind,cm] = rgb2ind(im,256);
-    % Write to the GIF File
-    if i == 1
-        imwrite(imind,cm,'../../fig/downwelling.gif','gif', 'Loopcount',inf);
-    else
-        imwrite(imind,cm,'../../fig/downwelling.gif','gif','WriteMode','append');
-    end
-end
-%%
-% Du(isnan(Du))=0;
-% figure
-% axesm eckert4; 
-% hold on
-% worldmap([y(1),y(end)],[x(1),x(end)])%,[y(1) y(end)],[x(1) x(end)])
-% % load coastlines
-% % plotm(coastlat,coastlon)
-% surfacem(y,x,Du');
-% geoshow('landareas.shp', 'FaceColor', [0.5 1.0 0.5]);
-% colorbar
-% %caxis([0 0.6])
-% title('2->1')
-
-%% original gif
+figure('Position', [0, 0, 700, 400])
+semilogy(Dd_pos,'LineWidth',2)
+xticks([2:2:12]);
+xticklabels(mon(2:2:12))
+xlim([1 12])
+xlabel('Month')
+ylabel('Diffusive exchange rate [d^{-1}]')
+set(gca,'FontSize',18)
+title('50N 30W')
+print('../../fig/diff_50N30W', '-dpng', '-r300');
+%% GIF
+% h = figure('Position', [50, 50, 900, 550]);
+% set(gcf,'color','w');
+% 
 % for i = 1:12
 %     
-%     h=figure;
-%     hold on
-%     axesm eckert4;
-%     ax = worldmap('world');
-%     setm(ax, 'Origin', [0 200 0])
-%     surfacem(y,x,Dd(:,:,i)');
-%     geoshow('landareas.shp', 'FaceColor', [0.5 1.0 0.5],'EdgeColor',[0.5 1.0 0.5]);
-%     caxis([0 0.6])
-%     c=colorbar;
-%     c.Label.String='[d^{-1}]';
-%     title(mon(i))
+%     %subplot(2,2,1)
 %     
+%     ax = axesm ( 'Origin',  [0 -90 0], 'MapProjection','eckert4', 'Grid', 'on', 'Frame', 'on',...
+%         'ScaleFactor', 1, 'labelrotation', 'off', 'FLineWidth', 2);
+%     ax.XColor = 'white';
+%     ax.YColor = 'white';
+%     axis tight manual
+% 
+%     %plabel('PlabelLocation',20, 'PLabelMeridian', 91)
+%     surfacem(y,xp ,Ddp(:,:,i)');
+%     %shading interp
+%     geoshow('landareas.shp', 'FaceColor', [0.8 0.8 0.8], 'EdgeColor', 'black');
+%     caxis([0 0.6])
+%     c = colorbar('southoutside', 'FontSize',14);
+%     c.Label.String  = 'Diffusion rate [1/d]';
+%     box off
+%     title(mon(i))
+%     drawnow
 %     
 %     % Capture the plot as an image
 %     frame = getframe(h);
@@ -233,10 +190,8 @@ end
 %     [imind,cm] = rgb2ind(im,256);
 %     % Write to the GIF File
 %     if i == 1
-%         imwrite(imind,cm,'downwelling','gif', 'Loopcount',inf);
+%         imwrite(imind,cm,'../../fig/downwelling.gif','gif', 'Loopcount',inf);
 %     else
-%         imwrite(imind,cm,'downwelling','gif','WriteMode','append');
+%         imwrite(imind,cm,'../../fig/downwelling.gif','gif','WriteMode','append');
 %     end
-%     
 % end
-
